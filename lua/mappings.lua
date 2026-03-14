@@ -6,7 +6,7 @@ local map = vim.keymap.set
 -- mappings.lua is keymaps only.
 
 -- ── Command palette ─────────────────────────────────────────────────────────
-map("n", "<C-S-p>", "<cmd>Dotnet<cr>", { desc = "Dotnet command palette" })
+map("n", "<M-S-p>", "<cmd>Dotnet<cr>", { desc = "Dotnet command palette" })
 
 -- ── General ─────────────────────────────────────────────────────────────────
 map("i", "jk",       "<ESC>",      { desc = "Escape insert mode" })

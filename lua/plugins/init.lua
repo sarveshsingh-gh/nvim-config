@@ -12,7 +12,7 @@ return {
       win   = { border = "rounded" },
       spec = {
         -- ── General ──────────────────────────────────────────────────
-        { "<C-S-p>",     desc = "Dotnet command palette" },
+        { "<M-S-p>",     desc = "Dotnet command palette" },
         { "<leader>w",   desc = "Save file" },
         { "<leader>q",   desc = "Quit" },
         { "-",           desc = "Oil: open parent dir" },
