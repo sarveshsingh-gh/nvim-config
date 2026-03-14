@@ -12,6 +12,7 @@ end
 -- ---------------------------------------------------------------------------
 map("<Tab>",   "<cmd>bnext<cr>",  "Next buffer")
 map("<S-Tab>", "<cmd>bprev<cr>",  "Prev buffer")
+map("<leader>x", "<cmd>w<cr><cmd>bd<cr>", "Save and close buffer")
 
 -- ---------------------------------------------------------------------------
 -- Diagnostics — d-prefix chords
