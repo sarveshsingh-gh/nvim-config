@@ -266,8 +266,7 @@ return {
         view                = { side = "left", width = 35 },
         follow_current_file = true,
       })
-      vim.keymap.set("n", "<leader>E", "<cmd>CSharpExplorer<cr>",
-        { silent = true, desc = "Solution Explorer" })
+      -- <leader>E keymap lives in keymaps.lua
     end,
   },
 

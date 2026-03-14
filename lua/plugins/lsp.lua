@@ -104,9 +104,5 @@ return {
         lsp_fallback = true,
       },
     },
-    keys = {
-      { "<leader>cf", function() require("conform").format({ async = true }) end,
-        mode = { "n", "v" }, desc = "Format document" },
-    },
   },
 }

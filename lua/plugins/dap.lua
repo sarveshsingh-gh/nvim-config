@@ -7,7 +7,7 @@ return {
     config = function()
       local dap = require("dap")
 
-      -- netcoredbg adapter
+      -- netcoredbg adapter (installed via Mason)
       local mason_bin = vim.fn.stdpath("data") .. "/mason/bin/netcoredbg"
       local dbg = vim.fn.filereadable(mason_bin) == 1 and mason_bin
                   or vim.fn.exepath("netcoredbg")
@@ -48,27 +48,6 @@ return {
         },
       }
       dap.configurations.fsharp = dap.configurations.cs
-
-      -- ── VS-style keymaps ────────────────────────────────────────────────
-      local km = function(lhs, rhs, desc)
-        vim.keymap.set("n", lhs, rhs, { silent = true, desc = desc })
-      end
-
-      km("<F5>",       function() dap.continue() end,                         "Debug: Continue")
-      km("<S-F5>",     function() dap.terminate() end,                        "Debug: Stop")
-      km("<C-S-F5>",   function() dap.restart() end,                          "Debug: Restart")
-      km("<F9>",       function() dap.toggle_breakpoint() end,                "Debug: Toggle breakpoint")
-      km("<C-F9>",     function() dap.set_breakpoint(vim.fn.input("Condition: ")) end, "Debug: Conditional BP")
-      km("<S-F9>",     function() dap.set_breakpoint(nil, nil, vim.fn.input("Log: ")) end, "Debug: Log-point")
-      km("<F10>",      function() dap.step_over() end,                        "Debug: Step over")
-      km("<F11>",      function() dap.step_into() end,                        "Debug: Step into")
-      km("<S-F11>",    function() dap.step_out() end,                         "Debug: Step out")
-      km("<C-F10>",    function() dap.run_to_cursor() end,                    "Debug: Run to cursor")
-      km("<C-S-F9>",   function() dap.clear_breakpoints() end,                "Debug: Clear all BPs")
-      km("<C-A-b>",    function()
-        require("telescope").load_extension("dap")
-        require("telescope").extensions.dap.list_breakpoints()
-      end, "Debug: Browse breakpoints")
     end,
   },
 
@@ -80,40 +59,63 @@ return {
       local dap   = require("dap")
       local dapui = require("dapui")
 
-      -- Auto open/close
+      -- Auto open/close UI with the debug session
       dap.listeners.after.event_initialized["dapui_config"]  = function() dapui.open() end
       dap.listeners.before.event_terminated["dapui_config"]  = function() dapui.close() end
       dap.listeners.before.event_exited["dapui_config"]      = function() dapui.close() end
 
       dapui.setup({
+        -- Show variable values expanded inline
         expand_lines = true,
-        controls     = { enabled = false },
-        floating     = { border = "rounded" },
+
+        -- No play/step buttons in the UI (we use F-keys)
+        controls = { enabled = false },
+
+        -- Rounded borders on floating windows
+        floating = { border = "rounded", mappings = { close = { "q", "<Esc>" } } },
+
         render = {
-          max_type_length = 60,
-          max_value_lines = 200,
+          max_type_length = 60,   -- truncate long type names
+          max_value_lines = 200,  -- max lines for multi-line values
+          indent          = 1,
         },
+
+        -- Icons for the tree expand/collapse
+        icons = {
+          expanded  = "",
+          collapsed = "",
+          circular  = "",
+        },
+
+        -- Bottom panel: Scopes (locals) + Watches side by side
         layouts = {
           {
             elements = {
-              { id = "scopes",  size = 0.6 },
-              { id = "watches", size = 0.4 },
+              { id = "scopes",  size = 0.60 }, -- local variables
+              { id = "watches", size = 0.40 }, -- custom watch expressions
             },
-            size     = 15,
+            size     = 15,       -- height in lines
             position = "bottom",
           },
         },
-      })
 
-      -- DAP UI keymaps
-      local m = function(mode, lhs, rhs, desc)
-        vim.keymap.set(mode, lhs, rhs, { silent = true, desc = desc })
-      end
-      m("n",          "<leader>du", dapui.toggle,                                        "DAP UI toggle")
-      m({ "n", "v" }, "<leader>dv", function() dapui.eval(nil, { enter = true }) end,   "DAP eval")
-      m("n",          "<leader>dh", function() require("dap.ui.widgets").hover() end,    "DAP hover value")
-      m("n",          "Q",          function() require("dap.ui.widgets").hover() end,    "DAP hover value")
-      m("v",          "Q",          function() dapui.eval() end,                         "DAP eval selection")
+        -- Keymaps inside dap-ui element panels
+        element_mappings = {
+          scopes = {
+            open        = "<CR>",
+            expand      = "o",
+            expand_all  = "O",
+            collapse    = "W",
+            repl        = "r",
+          },
+          watches = {
+            open        = "<CR>",
+            expand      = "o",
+            remove      = "d",
+            edit        = "e",
+          },
+        },
+      })
     end,
   },
 }
