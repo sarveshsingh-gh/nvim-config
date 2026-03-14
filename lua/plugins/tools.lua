@@ -9,6 +9,30 @@ return {
     "stevearc/oil.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
     lazy = false, -- load early so `-` works from any buffer
+    config = function(_, opts)
+      require("oil").setup(opts)
+
+      -- Truncated path in the oil window winbar (last 3 segments, ~ for home)
+      _G.OilTitle = function()
+        local ok, oil = pcall(require, "oil")
+        if not ok then return "" end
+        local dir = oil.get_current_dir()
+        if not dir then return "" end
+        dir = dir:gsub(vim.env.HOME, "~"):gsub("/$", "")
+        local parts = vim.split(dir, "/", { plain = true, trimempty = true })
+        if #parts > 3 then
+          return "  .../" .. table.concat({ parts[#parts - 1], parts[#parts] }, "/")
+        end
+        return "  " .. dir
+      end
+
+      vim.api.nvim_create_autocmd("BufEnter", {
+        pattern = "oil://*",
+        callback = function()
+          vim.wo.winbar = "%!v:lua.OilTitle()"
+        end,
+      })
+    end,
     opts = {
       -- Use oil as the default file explorer (replaces netrw)
       default_file_explorer = true,

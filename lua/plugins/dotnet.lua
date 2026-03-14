@@ -292,11 +292,39 @@ return {
       }
       dap.adapters.cs = dap.adapters.coreclr -- alias
 
+      -- Find the project DLL under bin/Debug for the current project
+      local function find_dll()
+        local cwd = vim.fn.getcwd()
+        -- Look for **/bin/Debug/**/*.dll (first match wins)
+        local dlls = vim.fn.glob(cwd .. "/**/bin/Debug/**/*.dll", false, true)
+        -- Filter out deps/refs bundles
+        dlls = vim.tbl_filter(function(p)
+          return not p:match("%.deps%.json") and not p:match("ref/")
+        end, dlls)
+        if #dlls == 1 then
+          return dlls[1]
+        elseif #dlls > 1 then
+          -- If multiple, let the user pick
+          return vim.fn.input("DLL path: ", dlls[1], "file")
+        end
+        return vim.fn.input("DLL path: ", cwd .. "/bin/Debug/", "file")
+      end
+
       dap.configurations.cs = {
         {
-          type = "coreclr",
-          name = "Attach (netcoredbg)",
-          request = "attach",
+          type    = "coreclr",
+          name    = "Launch (netcoredbg)",
+          request = "launch",
+          program = find_dll,
+          env = {
+            ASPNETCORE_ENVIRONMENT = "Development",
+          },
+          console = "internalConsole",
+        },
+        {
+          type      = "coreclr",
+          name      = "Attach (netcoredbg)",
+          request   = "attach",
           processId = function()
             return require("dap.utils").pick_process()
           end,

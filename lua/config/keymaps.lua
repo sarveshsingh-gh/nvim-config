@@ -14,12 +14,6 @@ map("<Tab>",   "<cmd>bnext<cr>",  "Next buffer")
 map("<S-Tab>", "<cmd>bprev<cr>",  "Prev buffer")
 
 -- ---------------------------------------------------------------------------
--- LSP — short chords (no leader)
--- ---------------------------------------------------------------------------
-vim.keymap.set("n",        "rn", vim.lsp.buf.rename,      { silent = true, desc = "Rename symbol" })
-vim.keymap.set({ "n","x"}, "ca", vim.lsp.buf.code_action, { silent = true, desc = "Code action" })
-
--- ---------------------------------------------------------------------------
 -- Diagnostics — d-prefix chords
 -- d[  next diagnostic      d]  previous diagnostic
 -- ds  all → quickfix       df  all → Snacks picker
