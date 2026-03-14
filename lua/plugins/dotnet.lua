@@ -559,12 +559,11 @@ return {
         follow_current_file = true,
       })
 
-      -- Ctrl+Alt+L — matches Visual Studio's Solution Explorer shortcut
       vim.keymap.set(
         "n",
-        "<C-A-l>",
+        "<leader>E",
         "<cmd>CSharpExplorer<cr>",
-        { desc = "Solution Explorer  (VS Ctrl+Alt+L)", silent = true }
+        { desc = "Solution Explorer", silent = true }
       )
     end,
   },
