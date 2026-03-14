@@ -1,0 +1,235 @@
+{
+  "$help": "https://aka.ms/terminal-documentation",
+  "$schema": "https://aka.ms/terminal-profiles-schema",
+
+  "defaultProfile": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+  "copyOnSelect": false,
+  "copyFormatting": "none",
+  "trimBlockSelection": true,
+
+  // ─── Window ───────────────────────────────────────────────────────────────
+  "initialCols": 220,
+  "initialRows": 50,
+  "launchMode": "maximized",
+  "windowingBehavior": "useExisting",
+
+  // ─── Rendering ────────────────────────────────────────────────────────────
+  "rendering": {
+    "forceFullRepaint": false,
+    "softwareRendering": false
+  },
+
+  // ─── Profiles ─────────────────────────────────────────────────────────────
+  "profiles": {
+    "defaults": {
+      "colorScheme": "VS Code Dark+",
+      "font": {
+        "face": "CaskaydiaCove Nerd Font",
+        "size": 11,
+        "weight": "normal"
+      },
+      "opacity": 96,
+      "useAcrylic": true,
+      "acrylicOpacity": 0.92,
+      "scrollbarState": "hidden",
+      "cursorShape": "bar",
+      "padding": "8",
+      "antialiasingMode": "cleartype",
+      "bellStyle": "none",
+      "closeOnExit": "graceful"
+    },
+    "list": [
+      {
+        // Windows PowerShell 5.1
+        "guid": "{61c54bbd-c2c6-5271-96e7-009a87ff44bf}",
+        "name": "PowerShell",
+        "commandline": "powershell.exe",
+        "hidden": false,
+        "icon": "ms-appx:///ProfileIcons/{61c54bbd-c2c6-5271-96e7-009a87ff44bf}.png"
+      },
+      {
+        // PowerShell 7+ (cross-platform) — install via: winget install Microsoft.PowerShell
+        "guid": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+        "name": "PowerShell 7",
+        "source": "Windows.Terminal.PowershellCore",
+        "hidden": false
+      },
+      {
+        // Command Prompt
+        "guid": "{0caa0dad-35be-5f56-a8ff-afceeeaa6101}",
+        "name": "Command Prompt",
+        "commandline": "cmd.exe",
+        "hidden": false
+      }
+    ]
+  },
+
+  // ─── Color Schemes ────────────────────────────────────────────────────────
+  "schemes": [
+    {
+      "name": "VS Code Dark+",
+      "background": "#1E1E1E",
+      "foreground": "#D4D4D4",
+      "selectionBackground": "#264F78",
+      "cursorColor": "#AEAFAD",
+
+      "black":        "#000000",
+      "red":          "#CD3131",
+      "green":        "#0DBC79",
+      "yellow":       "#E5E510",
+      "blue":         "#2472C8",
+      "purple":       "#BC3FBC",
+      "cyan":         "#11A8CD",
+      "white":        "#E5E5E5",
+
+      "brightBlack":  "#666666",
+      "brightRed":    "#F14C4C",
+      "brightGreen":  "#23D18B",
+      "brightYellow": "#F5F543",
+      "brightBlue":   "#3B8EEA",
+      "brightPurple": "#D670D6",
+      "brightCyan":   "#29B8DB",
+      "brightWhite":  "#E5E5E5"
+    }
+  ],
+
+  // ─── Keybindings ──────────────────────────────────────────────────────────
+  // Modifier: Alt (instant, no prefix key needed — like Vim's Alt mappings)
+  //
+  // SPLITS (tmux-style)
+  //   Alt+\        split right  (vertical)
+  //   Alt+-        split down   (horizontal)
+  //   Alt+x        close pane
+  //   Alt+z        zoom / unzoom pane  (tmux prefix+z)
+  //
+  // PANE FOCUS  (Vim h/j/k/l)
+  //   Alt+h        focus left
+  //   Alt+j        focus down
+  //   Alt+k        focus up
+  //   Alt+l        focus right
+  //
+  // PANE RESIZE  (Vim Shift+h/j/k/l)
+  //   Alt+Shift+h  resize left
+  //   Alt+Shift+j  resize down
+  //   Alt+Shift+k  resize up
+  //   Alt+Shift+l  resize right
+  //
+  // TABS
+  //   Alt+t        new tab
+  //   Alt+[        previous tab  (tmux prefix+p)
+  //   Alt+]        next tab      (tmux prefix+n)
+  //   Alt+1..9     jump to tab
+  //   Alt+w        close tab
+  //
+  // MISC
+  //   Alt+f        toggle full screen
+  //   Alt+c        copy selection
+  //   Alt+v        paste
+  //   Ctrl++/-     font size up/down
+  // ──────────────────────────────────────────────────────────────────────────
+  "actions": [
+
+    // ── Splits ──────────────────────────────────────────────────────────────
+    {
+      "command": { "action": "splitPane", "split": "right", "splitMode": "duplicate" },
+      "keys": "alt+\\"
+    },
+    {
+      "command": { "action": "splitPane", "split": "down", "splitMode": "duplicate" },
+      "keys": "alt+-"
+    },
+    {
+      "command": "closePane",
+      "keys": "alt+x"
+    },
+    {
+      "command": "togglePaneZoom",
+      "keys": "alt+z"
+    },
+
+    // ── Pane focus (Vim hjkl) ────────────────────────────────────────────────
+    {
+      "command": { "action": "moveFocus", "direction": "left" },
+      "keys": "alt+h"
+    },
+    {
+      "command": { "action": "moveFocus", "direction": "down" },
+      "keys": "alt+j"
+    },
+    {
+      "command": { "action": "moveFocus", "direction": "up" },
+      "keys": "alt+k"
+    },
+    {
+      "command": { "action": "moveFocus", "direction": "right" },
+      "keys": "alt+l"
+    },
+
+    // ── Pane resize (Vim Shift+hjkl) ─────────────────────────────────────────
+    {
+      "command": { "action": "resizePane", "direction": "left" },
+      "keys": "alt+shift+h"
+    },
+    {
+      "command": { "action": "resizePane", "direction": "down" },
+      "keys": "alt+shift+j"
+    },
+    {
+      "command": { "action": "resizePane", "direction": "up" },
+      "keys": "alt+shift+k"
+    },
+    {
+      "command": { "action": "resizePane", "direction": "right" },
+      "keys": "alt+shift+l"
+    },
+
+    // ── Tabs ─────────────────────────────────────────────────────────────────
+    {
+      "command": "newTab",
+      "keys": "alt+t"
+    },
+    {
+      "command": "prevTab",
+      "keys": "alt+["
+    },
+    {
+      "command": "nextTab",
+      "keys": "alt+]"
+    },
+    {
+      "command": "closeTab",
+      "keys": "alt+w"
+    },
+    { "command": { "action": "switchToTab", "index": 0 }, "keys": "alt+1" },
+    { "command": { "action": "switchToTab", "index": 1 }, "keys": "alt+2" },
+    { "command": { "action": "switchToTab", "index": 2 }, "keys": "alt+3" },
+    { "command": { "action": "switchToTab", "index": 3 }, "keys": "alt+4" },
+    { "command": { "action": "switchToTab", "index": 4 }, "keys": "alt+5" },
+
+    // ── Misc ─────────────────────────────────────────────────────────────────
+    {
+      "command": "toggleFullscreen",
+      "keys": "alt+f"
+    },
+    {
+      "command": { "action": "copy", "singleLine": false },
+      "keys": "alt+c"
+    },
+    {
+      "command": "paste",
+      "keys": "alt+v"
+    },
+    {
+      "command": { "action": "adjustFontSize", "delta": 1 },
+      "keys": "ctrl+="
+    },
+    {
+      "command": { "action": "adjustFontSize", "delta": -1 },
+      "keys": "ctrl+-"
+    },
+    {
+      "command": "resetFontSize",
+      "keys": "ctrl+0"
+    }
+  ]
+}
