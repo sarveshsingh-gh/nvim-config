@@ -34,16 +34,21 @@ return {
   -- ── Completion (blink.cmp) ────────────────────────────────────────────────
   {
     "saghen/blink.cmp",
-    event        = "InsertEnter",
-    version      = "*",
-    dependencies = { "rafamadriz/friendly-snippets" },
+    event   = "InsertEnter",
+    version = "*",
+    dependencies = {
+      -- VS Code snippets for every language (html, css, js, ts, lua, C#, etc.)
+      { "rafamadriz/friendly-snippets", lazy = false },
+    },
     opts = {
       keymap     = { preset = "default" },
       appearance = { use_nvim_hl_groups = true, nerd_font_variant = "mono" },
       sources    = { default = { "lsp", "path", "snippets", "buffer" } },
+      snippets   = { preset = "default" }, -- uses vim.snippet + loads VSCode snippets from rtp
       completion = {
         accept        = { auto_brackets = { enabled = true } },
         documentation = { auto_show = true, auto_show_delay_ms = 200 },
+        menu          = { draw = { treesitter = { "lsp" } } }, -- highlight completions with treesitter
       },
     },
   },
