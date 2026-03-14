@@ -11,6 +11,16 @@ end
 -- Note: replaces the default <C-i> jump-forward on Tab.
 -- ---------------------------------------------------------------------------
 -- lazygit in a full-screen Snacks terminal (closes cleanly, no nested nvim)
+map("<leader>rv", function()
+  for name, _ in pairs(package.loaded) do
+    if name:match("^plugins") or name:match("^config") then
+      package.loaded[name] = nil
+    end
+  end
+  dofile(vim.env.MYVIMRC)
+  vim.notify("Config reloaded", vim.log.levels.INFO)
+end, "Reload config")
+
 map("<leader>gg", function()
   Snacks.terminal.toggle("lazygit", { win = { position = "float", fullscreen = true } })
 end, "Lazygit")
