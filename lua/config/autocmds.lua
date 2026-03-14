@@ -8,23 +8,48 @@
 -- e.g. vim.api.nvim_del_augroup_by_name("lazyvim_wrap_spell")
 
 -- ---------------------------------------------------------------------------
--- LSP keymaps — re-bind in both normal AND visual mode on every attach.
--- Overrides LazyVim's defaults which are normal-mode only.
+-- LSP keymaps — set in both n+v mode, deferred so they run after LazyVim's
+-- own LspAttach (which would otherwise override them back to n-only).
 -- ---------------------------------------------------------------------------
 vim.api.nvim_create_autocmd("LspAttach", {
   group = vim.api.nvim_create_augroup("lsp_nv_keymaps", { clear = true }),
   callback = function(ev)
-    local m = function(lhs, rhs, desc)
-      vim.keymap.set({ "n", "v" }, lhs, rhs, { buffer = ev.buf, silent = true, desc = desc })
-    end
+    vim.defer_fn(function()
+      if not vim.api.nvim_buf_is_valid(ev.buf) then return end
+      local m = function(lhs, rhs, desc)
+        vim.keymap.set({ "n", "v" }, lhs, rhs, { buffer = ev.buf, silent = true, desc = desc })
+      end
+      m("gd", vim.lsp.buf.definition,      "Go to definition")
+      m("gm", vim.lsp.buf.implementation,  "Go to implementation")  -- gi/gI both enter insert
+      m("gD", vim.lsp.buf.declaration,     "Go to declaration")
+      m("gy", vim.lsp.buf.type_definition, "Go to type definition")
+      m("gr", vim.lsp.buf.references,      "Find references")
+      m("rn", vim.lsp.buf.rename,          "Rename symbol")
+      m("ca", vim.lsp.buf.code_action,     "Code action")
+    end, 0)
+  end,
+})
 
-    m("gd", vim.lsp.buf.definition,      "Go to definition")
-    m("gi", vim.lsp.buf.implementation,  "Go to implementation")
-    m("gD", vim.lsp.buf.declaration,     "Go to declaration")
-    m("gy", vim.lsp.buf.type_definition, "Go to type definition")
-    m("gr", vim.lsp.buf.references,      "Find references")
-    m("rn", vim.lsp.buf.rename,          "Rename symbol")
-    m("ca", vim.lsp.buf.code_action,     "Code action")
+-- ---------------------------------------------------------------------------
+-- Override LSP handlers after all plugins load (LazyVim replaces these with
+-- Snacks/Telescope pickers — restore direct-jump behaviour).
+-- ---------------------------------------------------------------------------
+vim.api.nvim_create_autocmd("User", {
+  pattern = "LazyDone",
+  once    = true,
+  callback = function()
+    local jump = function(_, result, _, _)
+      if not result or vim.tbl_isempty(result) then
+        vim.notify("No results", vim.log.levels.INFO)
+        return
+      end
+      local loc = vim.islist(result) and result[1] or result
+      vim.lsp.util.jump_to_location(loc, "utf-8", true)
+    end
+    vim.lsp.handlers["textDocument/definition"]     = jump
+    vim.lsp.handlers["textDocument/implementation"] = jump
+    vim.lsp.handlers["textDocument/typeDefinition"] = jump
+    vim.lsp.handlers["textDocument/declaration"]    = jump
   end,
 })
 
