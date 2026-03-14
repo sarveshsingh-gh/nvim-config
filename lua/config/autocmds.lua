@@ -18,25 +18,13 @@ vim.api.nvim_create_autocmd("LspAttach", {
       vim.keymap.set({ "n", "v" }, lhs, rhs, { buffer = ev.buf, silent = true, desc = desc })
     end
 
-    -- Jump directly without opening a picker (populate qf, go to first result)
-    local function goto(method)
-      return function()
-        vim.lsp.buf[method]({
-          on_list = function(opts)
-            vim.fn.setqflist({}, " ", opts)
-            vim.cmd("cfirst")
-          end,
-        })
-      end
-    end
-
-    m("gd", goto("definition"),      "Go to definition")
-    m("gi", goto("implementation"),  "Go to implementation")
-    m("gD", goto("declaration"),     "Go to declaration")
-    m("gy", goto("type_definition"), "Go to type definition")
-    m("gr", vim.lsp.buf.references,  "Find references")  -- picker is useful for refs
-    m("rn", vim.lsp.buf.rename,      "Rename symbol")
-    m("ca", vim.lsp.buf.code_action, "Code action")
+    m("gd", vim.lsp.buf.definition,      "Go to definition")
+    m("gi", vim.lsp.buf.implementation,  "Go to implementation")
+    m("gD", vim.lsp.buf.declaration,     "Go to declaration")
+    m("gy", vim.lsp.buf.type_definition, "Go to type definition")
+    m("gr", vim.lsp.buf.references,      "Find references")
+    m("rn", vim.lsp.buf.rename,          "Rename symbol")
+    m("ca", vim.lsp.buf.code_action,     "Code action")
   end,
 })
 
