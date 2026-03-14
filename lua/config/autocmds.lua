@@ -1,17 +1,9 @@
--- Autocmds are automatically loaded on the VeryLazy event
--- Default autocmds that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/autocmds.lua
---
--- Add any additional autocmds here
--- with `vim.api.nvim_create_autocmd`
---
--- Or remove existing autocmds by their group name (which is prefixed with `lazyvim_` for the defaults)
--- e.g. vim.api.nvim_del_augroup_by_name("lazyvim_wrap_spell")
-
 -- ---------------------------------------------------------------------------
--- LSP keymaps — n + v mode, buffer-local on every attach.
+-- LSP keymaps — buffer-local, n + v mode, set on every attach.
+-- No LazyVim overrides here — vim.lsp.buf.* jumps directly by default.
 -- ---------------------------------------------------------------------------
 vim.api.nvim_create_autocmd("LspAttach", {
-  group = vim.api.nvim_create_augroup("lsp_nv_keymaps", { clear = true }),
+  group = vim.api.nvim_create_augroup("lsp_keymaps", { clear = true }),
   callback = function(ev)
     local m = function(lhs, rhs, desc)
       vim.keymap.set({ "n", "v" }, lhs, rhs, { buffer = ev.buf, silent = true, desc = desc })
@@ -21,13 +13,19 @@ vim.api.nvim_create_autocmd("LspAttach", {
     m("gD", vim.lsp.buf.declaration,     "Go to declaration")
     m("gy", vim.lsp.buf.type_definition, "Go to type definition")
     m("gr", vim.lsp.buf.references,      "Find references")
+    m("K",  vim.lsp.buf.hover,           "Hover docs")
     m("rn", vim.lsp.buf.rename,          "Rename symbol")
     m("ca", vim.lsp.buf.code_action,     "Code action")
+
+    -- Inlay hints toggle
+    vim.keymap.set("n", "<leader>uh", function()
+      vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = ev.buf }), { bufnr = ev.buf })
+    end, { buffer = ev.buf, silent = true, desc = "Toggle inlay hints" })
   end,
 })
 
 -- ---------------------------------------------------------------------------
--- .NET / C# indentation — 4 spaces, no tabs (Microsoft style guide)
+-- .NET / C# indentation — 4 spaces (Microsoft style guide)
 -- ---------------------------------------------------------------------------
 vim.api.nvim_create_autocmd("FileType", {
   group   = vim.api.nvim_create_augroup("dotnet_indent", { clear = true }),
@@ -36,13 +34,12 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.tabstop     = 4
     vim.opt_local.shiftwidth  = 4
     vim.opt_local.softtabstop = 4
-    vim.opt_local.expandtab   = true   -- spaces not tabs
+    vim.opt_local.expandtab   = true
   end,
 })
 
 -- ---------------------------------------------------------------------------
--- Auto-save — write after 1 s of inactivity (CursorHold), like VS Code.
--- Only saves normal file buffers: skips unnamed, terminals, oil, etc.
+-- Auto-save — 1 s idle, named file buffers only
 -- ---------------------------------------------------------------------------
 vim.api.nvim_create_autocmd({ "CursorHold", "CursorHoldI" }, {
   group = vim.api.nvim_create_augroup("autosave", { clear = true }),

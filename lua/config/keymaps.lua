@@ -1,16 +1,10 @@
--- Keymaps are automatically loaded on the VeryLazy event
--- Default keymaps that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/keymaps.lua
--- Add any additional keymaps here
-
 local map = function(lhs, rhs, desc)
   vim.keymap.set("n", lhs, rhs, { silent = true, desc = desc })
 end
 
 -- ---------------------------------------------------------------------------
--- Buffer tabs  (Tab = next, Shift+Tab = prev — like browser / VS tabs)
--- Note: replaces the default <C-i> jump-forward on Tab.
+-- Config
 -- ---------------------------------------------------------------------------
--- lazygit in a full-screen Snacks terminal (closes cleanly, no nested nvim)
 map("<leader>rv", function()
   for name, _ in pairs(package.loaded) do
     if name:match("^plugins") or name:match("^config") then
@@ -21,59 +15,58 @@ map("<leader>rv", function()
   vim.notify("Config reloaded", vim.log.levels.INFO)
 end, "Reload config")
 
-map("<leader>gg", function()
-  Snacks.terminal.toggle("lazygit", { win = { position = "float", fullscreen = true } })
-end, "Lazygit")
-
-map("<Tab>", "<cmd>bnext<cr>", "Next buffer")
-map("<S-Tab>", "<cmd>bprev<cr>", "Prev buffer")
-map("<leader>x", "<cmd>w<cr><cmd>bd<cr>", "Save and close buffer")
+-- ---------------------------------------------------------------------------
+-- Buffer tabs
+-- ---------------------------------------------------------------------------
+map("<Tab>",       "<cmd>bnext<cr>",                    "Next buffer")
+map("<S-Tab>",     "<cmd>bprev<cr>",                    "Prev buffer")
+map("<leader>x",   "<cmd>w<cr><cmd>bd<cr>",             "Save and close buffer")
 
 -- ---------------------------------------------------------------------------
--- Diagnostics — d-prefix chords
--- d[  next diagnostic      d]  previous diagnostic
--- ds  all → quickfix       df  all → Snacks picker
--- ---------------------------------------------------------------------------
-map("d[", function()
-  vim.diagnostic.jump({ count = 1, float = true })
-end, "Next diagnostic")
-
-map("d]", function()
-  vim.diagnostic.jump({ count = -1, float = true })
-end, "Prev diagnostic")
-
-map("ds", function()
-  vim.diagnostic.setqflist()
-  vim.cmd("copen")
-end, "All diagnostics → quickfix")
-
-map("df", function()
-  vim.diagnostic.setqflist()
-  require("telescope.builtin").quickfix()
-end, "All diagnostics → Telescope")
-
--- ---------------------------------------------------------------------------
--- Works identically to <C-h/j/k/l> (LazyVim default) but uses h for left
--- so you can navigate without leaving the home row of h/j/k/l.
--- Also ensures these work from inside a terminal buffer.
+-- Window navigation — <C-h/j/k/l> + terminal mode
 -- ---------------------------------------------------------------------------
 local wins = { h = "h", j = "j", k = "k", l = "l" }
 for key, dir in pairs(wins) do
-  vim.keymap.set("n", "<C-" .. key .. ">", "<C-w>" .. dir, { silent = true, desc = "Go to " .. dir .. " window" })
-  vim.keymap.set(
-    "t",
-    "<C-" .. key .. ">",
-    "<C-\\><C-n><C-w>" .. dir,
-    { silent = true, desc = "Go to " .. dir .. " window (terminal)" }
-  )
+  vim.keymap.set("n", "<C-" .. key .. ">", "<C-w>" .. dir,
+    { silent = true, desc = "Go to " .. dir .. " window" })
+  vim.keymap.set("t", "<C-" .. key .. ">", "<C-\\><C-n><C-w>" .. dir,
+    { silent = true, desc = "Go to " .. dir .. " window (terminal)" })
 end
 
 -- ---------------------------------------------------------------------------
--- Horizontal terminal — <C-t> toggles a persistent bottom-split terminal.
--- Works from normal mode and from inside the terminal itself.
+-- Terminal toggle  <C-t>
 -- ---------------------------------------------------------------------------
 vim.keymap.set({ "n", "t" }, "<C-t>", function()
   Snacks.terminal.toggle(nil, {
     win = { position = "bottom", height = 0.30 },
   })
-end, { silent = true, desc = "Toggle horizontal terminal" })
+end, { silent = true, desc = "Toggle terminal" })
+
+-- ---------------------------------------------------------------------------
+-- Lazygit  <leader>gg
+-- ---------------------------------------------------------------------------
+map("<leader>gg", function()
+  Snacks.terminal.toggle("lazygit", { win = { position = "float", fullscreen = true } })
+end, "Lazygit")
+
+-- ---------------------------------------------------------------------------
+-- Diagnostics
+-- ---------------------------------------------------------------------------
+map("d[", function() vim.diagnostic.jump({ count =  1, float = true }) end, "Next diagnostic")
+map("d]", function() vim.diagnostic.jump({ count = -1, float = true }) end, "Prev diagnostic")
+map("ds", function() vim.diagnostic.setqflist(); vim.cmd("copen") end,      "Diagnostics → quickfix")
+map("df", function()
+  vim.diagnostic.setqflist()
+  require("telescope.builtin").quickfix()
+end, "Diagnostics → Telescope")
+
+-- ---------------------------------------------------------------------------
+-- Oil
+-- ---------------------------------------------------------------------------
+map("-",          "<cmd>Oil<cr>",                          "Oil — open parent dir")
+map("<leader>o",  function() require("oil").toggle_float() end, "Oil — float")
+
+-- ---------------------------------------------------------------------------
+-- Zoxide
+-- ---------------------------------------------------------------------------
+map("<leader>z", "<cmd>Zi<cr>", "Zoxide — interactive jump")

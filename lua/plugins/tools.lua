@@ -1,18 +1,37 @@
 return {
 
-  -- =========================================================================
-  -- oil.nvim — edit the filesystem like a buffer
-  -- `-`  opens the parent directory of the current file
-  -- `<leader>o` opens oil in a floating window
-  -- =========================================================================
+  -- File explorer (edit filesystem like a buffer)
   {
     "stevearc/oil.nvim",
+    lazy         = false,
     dependencies = { "nvim-tree/nvim-web-devicons" },
-    lazy = false, -- load early so `-` works from any buffer
-    config = function(_, opts)
-      require("oil").setup(opts)
+    config = function()
+      require("oil").setup({
+        default_file_explorer = true,
+        view_options          = { show_hidden = true },
+        float = {
+          padding    = 2,
+          max_width  = 90,
+          max_height = 30,
+        },
+        columns = { "icon", "permissions", "size", "mtime" },
+        keymaps = {
+          ["g?"]    = "actions.show_help",
+          ["<CR>"]  = "actions.select",
+          ["<C-v>"] = "actions.select_vsplit",
+          ["<C-s>"] = "actions.select_split",
+          ["<C-p>"] = "actions.preview",
+          ["<C-c>"] = "actions.close",
+          ["<C-r>"] = "actions.refresh",
+          ["-"]     = "actions.parent",
+          ["_"]     = "actions.open_cwd",
+          ["`"]     = "actions.cd",
+          ["g."]    = "actions.toggle_hidden",
+        },
+        use_default_keymaps = false,
+      })
 
-      -- Truncated path in the oil window winbar (last 3 segments, ~ for home)
+      -- Truncated winbar: show …/parent/current for deep paths
       _G.OilTitle = function()
         local ok, oil = pcall(require, "oil")
         if not ok then return "" end
@@ -27,73 +46,59 @@ return {
       end
 
       vim.api.nvim_create_autocmd("BufEnter", {
-        pattern = "oil://*",
-        callback = function()
-          vim.wo.winbar = "%!v:lua.OilTitle()"
-        end,
+        pattern  = "oil://*",
+        callback = function() vim.wo.winbar = "%!v:lua.OilTitle()" end,
       })
     end,
-    opts = {
-      -- Use oil as the default file explorer (replaces netrw)
-      default_file_explorer = true,
-      -- Show hidden files by default
-      view_options = {
-        show_hidden = true,
-      },
-      -- Floating window for <leader>o
-      float = {
-        padding = 2,
-        max_width  = 90,
-        max_height = 30,
-      },
-      -- Column decorations
-      columns = {
-        "icon",
-        "permissions",
-        "size",
-        "mtime",
-      },
-      -- Key mappings inside the oil buffer
-      keymaps = {
-        ["g?"]    = "actions.show_help",
-        ["<CR>"]  = "actions.select",
-        ["<C-v>"] = "actions.select_vsplit",
-        ["<C-s>"] = "actions.select_split",
-        ["<C-t>"] = "actions.select_tab",
-        ["<C-p>"] = "actions.preview",
-        ["<C-c>"] = "actions.close",
-        ["<C-r>"] = "actions.refresh",
-        ["-"]     = "actions.parent",
-        ["_"]     = "actions.open_cwd",
-        ["`"]     = "actions.cd",
-        ["~"]     = "actions.tcd",
-        ["gs"]    = "actions.change_sort",
-        ["gx"]    = "actions.open_external",
-        ["g."]    = "actions.toggle_hidden",
-        ["g\\"]   = "actions.toggle_trash",
-      },
-      use_default_keymaps = false,
-    },
+  },
+
+  -- Fuzzy finder
+  {
+    "nvim-telescope/telescope.nvim",
+    cmd          = "Telescope",
+    dependencies = { "nvim-lua/plenary.nvim" },
     keys = {
-      -- `-` opens parent dir (vim-vinegar style)
-      { "-",          "<cmd>Oil<cr>",                                    desc = "Oil — open parent dir" },
-      -- <leader>o opens a floating oil window
-      { "<leader>o",  function() require("oil").toggle_float() end,      desc = "Oil — float explorer" },
+      { "<leader>ff", "<cmd>Telescope find_files<cr>",  desc = "Find files" },
+      { "<leader>fg", "<cmd>Telescope live_grep<cr>",   desc = "Live grep" },
+      { "<leader>fb", "<cmd>Telescope buffers<cr>",     desc = "Buffers" },
+      { "<leader>fh", "<cmd>Telescope help_tags<cr>",   desc = "Help" },
+      { "<leader>fr", "<cmd>Telescope oldfiles<cr>",    desc = "Recent files" },
+    },
+    opts = {
+      defaults = {
+        -- Show parent/filename only
+        path_display = function(_, path)
+          local tail   = require("telescope.utils").path_tail(path)
+          local parent = vim.fn.fnamemodify(path, ":h:t")
+          if parent == "" or parent == "." then return tail end
+          return parent .. "/" .. tail
+        end,
+      },
     },
   },
 
-  -- =========================================================================
-  -- zoxide — smart directory jumping
-  -- Uses your zoxide history to jump to frecent directories.
-  -- <leader>z  opens an interactive picker (fzf/telescope)
-  -- :Z <query>  jumps directly  |  :Zi  interactive  |  :Zg  get path
-  -- Requires:  paru -S zoxide
-  -- =========================================================================
+  -- Snacks: terminal toggle + lazygit float
+  {
+    "folke/snacks.nvim",
+    lazy  = false,
+    priority = 900,
+    opts = {
+      terminal = { enabled = true },
+      picker   = {
+        enabled   = true,
+        formatters = {
+          file = {
+            truncate  = "left",
+            min_width = 30,
+          },
+        },
+      },
+    },
+  },
+
+  -- Zoxide directory jumping
   {
     "nanotee/zoxide.vim",
     cmd  = { "Z", "Zi", "Zg", "Zt" },
-    keys = {
-      { "<leader>z", "<cmd>Zi<cr>", desc = "Zoxide — interactive jump" },
-    },
   },
 }

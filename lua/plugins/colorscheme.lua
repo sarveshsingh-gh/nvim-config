@@ -1,21 +1,16 @@
 return {
-  -- VS Code Dark+ theme
   {
     "Mofiqul/vscode.nvim",
-    lazy = false,
+    lazy     = false,
     priority = 1000,
     opts = {
-      style = "dark",
-      transparent = false,
-      italic_comments = true,
+      style            = "dark",
+      transparent      = false,
+      italic_comments  = true,
     },
-  },
-
-  -- Tell LazyVim to use vscode instead of tokyonight
-  {
-    "LazyVim/LazyVim",
-    opts = {
-      colorscheme = "vscode",
-    },
+    config = function(_, opts)
+      require("vscode").setup(opts)
+      vim.cmd.colorscheme("vscode")
+    end,
   },
 }
