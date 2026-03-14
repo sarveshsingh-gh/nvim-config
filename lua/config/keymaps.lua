@@ -10,8 +10,13 @@ end
 -- Buffer tabs  (Tab = next, Shift+Tab = prev — like browser / VS tabs)
 -- Note: replaces the default <C-i> jump-forward on Tab.
 -- ---------------------------------------------------------------------------
-map("<Tab>",   "<cmd>bnext<cr>",  "Next buffer")
-map("<S-Tab>", "<cmd>bprev<cr>",  "Prev buffer")
+-- lazygit in a full-screen Snacks terminal (closes cleanly, no nested nvim)
+map("<leader>gg", function()
+  Snacks.terminal.toggle("lazygit", { win = { position = "float", fullscreen = true } })
+end, "Lazygit")
+
+map("<Tab>", "<cmd>bnext<cr>", "Next buffer")
+map("<S-Tab>", "<cmd>bprev<cr>", "Prev buffer")
 map("<leader>x", "<cmd>w<cr><cmd>bd<cr>", "Save and close buffer")
 
 -- ---------------------------------------------------------------------------
@@ -38,17 +43,19 @@ map("df", function()
 end, "All diagnostics → Telescope")
 
 -- ---------------------------------------------------------------------------
--- Window navigation — <C-i/j/k/l>  (normal + terminal mode)
--- Works identically to <C-h/j/k/l> (LazyVim default) but uses i for left
--- so you can navigate without leaving the home row of i/j/k/l.
+-- Works identically to <C-h/j/k/l> (LazyVim default) but uses h for left
+-- so you can navigate without leaving the home row of h/j/k/l.
 -- Also ensures these work from inside a terminal buffer.
 -- ---------------------------------------------------------------------------
-local wins = { i = "h", j = "j", k = "k", l = "l" }
+local wins = { h = "h", j = "j", k = "k", l = "l" }
 for key, dir in pairs(wins) do
-  vim.keymap.set("n", "<C-" .. key .. ">", "<C-w>" .. dir,
-    { silent = true, desc = "Go to " .. dir .. " window" })
-  vim.keymap.set("t", "<C-" .. key .. ">", "<C-\\><C-n><C-w>" .. dir,
-    { silent = true, desc = "Go to " .. dir .. " window (terminal)" })
+  vim.keymap.set("n", "<C-" .. key .. ">", "<C-w>" .. dir, { silent = true, desc = "Go to " .. dir .. " window" })
+  vim.keymap.set(
+    "t",
+    "<C-" .. key .. ">",
+    "<C-\\><C-n><C-w>" .. dir,
+    { silent = true, desc = "Go to " .. dir .. " window (terminal)" }
+  )
 end
 
 -- ---------------------------------------------------------------------------

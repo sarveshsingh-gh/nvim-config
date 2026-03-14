@@ -12,6 +12,8 @@
   "initialRows": 50,
   "launchMode": "maximized",
   "windowingBehavior": "useExisting",
+  "showTabsInTitlebar": true,     // tabs replace the title bar — no separate title bar
+  "showTerminalTitleInTitlebar": false, // don't show shell title in tab bar
 
   // ─── Rendering ────────────────────────────────────────────────────────────
   "rendering": {
@@ -210,6 +212,10 @@
     {
       "command": "toggleFullscreen",
       "keys": "alt+f"
+    },
+    {
+      "command": "toggleFocusMode",
+      "keys": "alt+shift+f"
     },
     {
       "command": { "action": "copy", "singleLine": false },
