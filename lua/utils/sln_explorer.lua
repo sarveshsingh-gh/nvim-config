@@ -244,9 +244,9 @@ end
 -- ── Render ────────────────────────────────────────────────────────────────────
 
 local INDENT      = "  "
-local ARROW_OPEN  = g(0x25BE) .. " "  -- ▾
-local ARROW_CLOSE = g(0x25B8) .. " "  -- ▸
-local LEAF_PAD    = "  "                  -- aligns files under folders
+local ARROW_OPEN  = "v "   -- expanded   — matches nvim-tree / Rider chevron-down style
+local ARROW_CLOSE = "> "   -- collapsed  — clean, always renders, same as nvim-tree default
+local LEAF_PAD    = "  "   -- leaf files — aligned under folder content
 
 local function render()
   if not S.buf or not vim.api.nvim_buf_is_valid(S.buf) then return end
@@ -700,7 +700,14 @@ local function open_win()
   wo.signcolumn = "no"; wo.foldcolumn = "0"
   wo.wrap = false; wo.winfixwidth = true
   wo.cursorline = true
-  wo.winbar = ""   -- tab title already shows "Solution Explorer"
+  wo.winbar = ""
+  -- Match nvim-tree's background so WinSeparator draws a visible border
+  wo.winhighlight = table.concat({
+    "Normal:NvimTreeNormal",
+    "NormalNC:NvimTreeNormalNC",
+    "CursorLine:NvimTreeCursorLine",
+    "WinSeparator:NvimTreeWinSeparator",
+  }, ",")
 
   vim.api.nvim_create_autocmd("WinClosed", {
     buffer = S.buf, once = true,
