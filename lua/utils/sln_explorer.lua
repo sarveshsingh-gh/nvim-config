@@ -6,7 +6,7 @@
 --   PROJECT   a=add proj-ref  P=add NuGet  D=remove NuGet/ref  n=new item
 --             b=build  r=run  t=test  v=project view (refs+NuGet)
 --   DIR/FILE  <cr>=open  r=rename  d=delete
---   ALL       W=collapse all  E=expand all  H=toggle bin/obj  <F5>=refresh  q=close  ?=help
+--   ALL       W=collapse node  E=expand node  H=toggle bin/obj  <F5>=refresh  q=close  ?=help
 
 local M = {}
 
@@ -608,8 +608,8 @@ local function show_help()
     "  ── Global (any node) ──────────────────────",
     "  <cr>        open file  /  toggle fold",
     "  <space>     toggle fold",
-    "  W           collapse all nodes",
-    "  E           expand  all nodes",
+    "  W           collapse node",
+    "  E           expand  node",
     "  <F5>        refresh tree",
     "  H           toggle bin/obj dirs",
     "  q           close Solution Explorer",
@@ -763,6 +763,24 @@ local DISPATCH = {
   end,
 
   ["?"] = function(_, _) show_help() end,
+  ["W"] = function(node, _)
+    local leaf = node.kind == "file" or node.kind == "pkg" or node.kind == "projref"
+    if not leaf then
+      S.collapsed[node.path] = true
+      local row = vim.api.nvim_win_get_cursor(S.win)[1]
+      refresh()
+      pcall(vim.api.nvim_win_set_cursor, S.win, { row, 0 })
+    end
+  end,
+  ["E"] = function(node, _)
+    local leaf = node.kind == "file" or node.kind == "pkg" or node.kind == "projref"
+    if not leaf then
+      S.collapsed[node.path] = false
+      local row = vim.api.nvim_win_get_cursor(S.win)[1]
+      refresh()
+      pcall(vim.api.nvim_win_set_cursor, S.win, { row, 0 })
+    end
+  end,
   ["H"] = function(_, _)
     S.show_build_dirs = not S.show_build_dirs
     vim.notify("[SolnExplorer] bin/obj " .. (S.show_build_dirs and "shown" or "hidden"),
@@ -793,17 +811,6 @@ local function setup_keymaps()
   vim.keymap.set("n", "<F5>", refresh,   o)
   vim.keymap.set("n", "q",    M.close,   o)
   vim.keymap.set("n", "<M-S-p>", "<cmd>Dotnet<cr>", o)
-  vim.keymap.set("n", "W", function()   -- collapse all (keep solution expanded)
-    for _, n in ipairs(S.nodes) do
-      local leaf = n.kind == "file" or n.kind == "pkg" or n.kind == "projref"
-      if not leaf and n.kind ~= "solution" then S.collapsed[n.path] = true end
-    end
-    refresh()
-  end, o)
-  vim.keymap.set("n", "E", function()   -- expand all
-    S.collapsed = {}
-    refresh()
-  end, o)
 end
 
 local function open_win()
