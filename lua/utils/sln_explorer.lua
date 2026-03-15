@@ -758,11 +758,21 @@ local function open_win()
   wo.winhighlight = "Normal:NvimTreeNormal,NormalNC:NvimTreeNormalNC,CursorLine:NvimTreeCursorLine,WinSeparator:SlnExplorerSep"
   -- Hide ~ end-of-buffer markers; force │ separator
   vim.opt_local.fillchars = { vert = "│", vertright = "│", eob = " " }
-  -- Define the separator highlight: use FloatBorder fg (theme-aware, always visible)
+  -- Define runtime highlights (theme-aware — resolved after colorscheme loads)
   vim.schedule(function()
+    -- Separator colour from FloatBorder fg
     local fb = vim.api.nvim_get_hl(0, { name = "FloatBorder", link = false })
     local fg = fb.fg or 0x3e4452
     vim.api.nvim_set_hl(0, "SlnExplorerSep", { fg = fg, bg = "NONE" })
+
+    -- Tabline blank area: same bg as the explorer panel (NvimTreeNormal → Normal fallback)
+    local nt = vim.api.nvim_get_hl(0, { name = "NvimTreeNormal", link = false })
+    local bg = nt.bg
+    if not bg then
+      local norm = vim.api.nvim_get_hl(0, { name = "Normal", link = false })
+      bg = norm.bg or 0x1e2127
+    end
+    vim.api.nvim_set_hl(0, "SlnTabBlank", { fg = bg, bg = bg })
   end)
 
   vim.api.nvim_create_autocmd("WinClosed", {
@@ -784,8 +794,7 @@ _G._sln_tabline = function()
   local W    = (S.win and vim.api.nvim_win_is_valid(S.win)) and panel_width() or 0
   local tabs = require("nvchad.tabufline.modules")()
   if W > 0 then
-    -- Paint the explorer-side blank with NvimTreeNormal bg so it's invisible
-    return "%#NvimTreeNormal#" .. string.rep(" ", W + 1) .. tabs
+    return "%#SlnTabBlank#" .. string.rep(" ", W + 1) .. tabs
   end
   return tabs
 end
