@@ -769,18 +769,16 @@ local function open_win()
     buffer = S.buf, once = true,
     callback = function()
       S.win = nil; S.buf = nil
-      vim.o.tabline = _nvchad_tabline
+      -- tabline stays as _sln_tabline
     end,
   })
 end
 
 -- ── Public API ────────────────────────────────────────────────────────────────
 
--- Capture NvChad's tabline expression once at module load (before we touch it).
-local _nvchad_tabline = vim.o.tabline
-
 -- Custom tabline: blank space over the explorer panel, real tabs in editor area.
--- Registered as a global so Vim can call it via  %!v:lua._sln_tabline()
+-- Owns the tabline permanently — delegates to NvChad when explorer is closed.
+-- Set once at startup (via vim.schedule so NvChad has already loaded).
 _G._sln_tabline = function()
   local W   = (S.win and vim.api.nvim_win_is_valid(S.win)) and panel_width() or 0
   local ok, tbl = pcall(require, "nvchad.tabufline")
@@ -788,12 +786,17 @@ _G._sln_tabline = function()
   return W > 0 and (string.rep(" ", W + 1) .. tabs) or tabs
 end
 
+vim.schedule(function()
+  vim.o.showtabline = 2
+  vim.o.tabline     = "%!v:lua._sln_tabline()"
+end)
+
 function M.close()
   if S.win and vim.api.nvim_win_is_valid(S.win) then
     vim.api.nvim_win_close(S.win, true)
   end
   S.win = nil; S.buf = nil
-  vim.o.tabline = _nvchad_tabline   -- restore NvChad's original tabline
+  -- tabline stays as _sln_tabline — it returns normal tabs when W==0
 end
 
 -- Hide the "No Name" startup buffer from the tabufline WITHOUT deleting it.
@@ -815,8 +818,6 @@ function M.open()
     vim.notify("[SolnExplorer] No .slnx / .sln found in " .. vim.fn.getcwd(), vim.log.levels.WARN)
     return
   end
-  -- Swap to padded tabline: blank over explorer, real tabs in editor area
-  vim.o.tabline = "%!v:lua._sln_tabline()"
   open_win()
   setup_keymaps()
   refresh()
