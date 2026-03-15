@@ -76,7 +76,9 @@ local I = {
 
 local SKIP_DIRS = { bin = true, obj = true, [".vs"] = true, [".git"] = true }
 local SKIP_EXTS = { dll=true, pdb=true, exe=true, nupkg=true, cache=true, user=true, suo=true }
-local WIDTH = 42
+
+-- 18% of the current terminal width, minimum 30 cols
+local function panel_width() return math.max(30, math.floor(vim.o.columns * 0.18)) end
 
 -- ── State ────────────────────────────────────────────────────────────────────
 
@@ -266,45 +268,53 @@ local function render()
   vim.api.nvim_buf_set_lines(S.buf, 0, -1, false, lines)
   vim.bo[S.buf].modifiable = false
 
+  -- Use ONLY nvim_buf_set_extmark (never add_highlight) so that priority
+  -- values are the single source of truth with no ambiguity:
+  --   p=50   CursorLine bg on solution row (bg only, text hl wins over it)
+  --   p=100  whole-line kind colour  (Title / Function / Directory)
+  --   p=200  arrow chars → Comment  (overrides line colour → dimmed)
+  --   p=250  suffix "· N projects"  → Comment
+  --   p=300  icon chars → devicons colour (highest → correct icon tint)
   vim.api.nvim_buf_clear_namespace(S.buf, HL_NS, 0, -1)
+
   for i, n in ipairs(S.nodes) do
     local row        = i - 1
     local indent_len = #INDENT * n.indent
 
-    -- Whole-line kind colour
-    local lhl = KIND_HL[n.kind]
-    if lhl and lhl ~= "Normal" then
-      vim.api.nvim_buf_add_highlight(S.buf, HL_NS, lhl, row, 0, -1)
-    end
-
-    -- Solution node: header background
+    -- Solution: subtle header background (behind all text hl)
     if n.kind == "solution" then
-      vim.api.nvim_buf_set_extmark(S.buf, HL_NS, row, 0, {
-        end_row  = row + 1, end_col = 0,
+      pcall(vim.api.nvim_buf_set_extmark, S.buf, HL_NS, row, 0, {
+        end_row = row + 1, end_col = 0,
         hl_group = "CursorLine", hl_eol = true, priority = 50,
       })
     end
 
-    -- Dim the arrow ("v " / "> ") — use Comment so it's reliably gray
-    if n.kind ~= "file" then
-      pcall(vim.api.nvim_buf_set_extmark, S.buf, HL_NS, row, indent_len, {
-        end_col  = indent_len + 2,
-        hl_group = "Comment",
-        priority = 300,   -- above kind HL (which has no explicit priority)
+    -- Whole-line kind colour
+    local lhl = KIND_HL[n.kind]
+    if lhl and lhl ~= "Normal" then
+      pcall(vim.api.nvim_buf_set_extmark, S.buf, HL_NS, row, 0, {
+        end_col = -1, hl_group = lhl, priority = 100,
       })
     end
 
-    -- "· N projects" suffix — dimmed
-    if n.text_sfx and n._name_end then
-      vim.api.nvim_buf_add_highlight(S.buf, HL_NS, "Comment", row, n._name_end, -1)
+    -- Arrow ("v " / "> "): dim with Comment, overrides line colour
+    if n.kind ~= "file" then
+      pcall(vim.api.nvim_buf_set_extmark, S.buf, HL_NS, row, indent_len, {
+        end_col = indent_len + 2, hl_group = "Comment", priority = 200,
+      })
     end
 
-    -- Per-icon colour from devicons / mini.icons
+    -- "· N projects" suffix
+    if n.text_sfx and n._name_end then
+      pcall(vim.api.nvim_buf_set_extmark, S.buf, HL_NS, row, n._name_end, {
+        end_col = -1, hl_group = "Comment", priority = 250,
+      })
+    end
+
+    -- Icon colour from devicons (highest priority)
     if n._ihl and n._ibytes and n._ibytes > 0 then
       pcall(vim.api.nvim_buf_set_extmark, S.buf, HL_NS, row, n._pfx, {
-        end_col  = n._pfx + n._ibytes,
-        hl_group = n._ihl,
-        priority = 200,
+        end_col = n._pfx + n._ibytes, hl_group = n._ihl, priority = 300,
       })
     end
   end
@@ -734,7 +744,7 @@ local function open_win()
   vim.bo[S.buf].buftype    = "nofile"
   vim.api.nvim_buf_set_name(S.buf, "Solution Explorer")
 
-  vim.cmd("topleft " .. WIDTH .. "vsplit")
+  vim.cmd("topleft " .. panel_width() .. "vsplit")
   S.win = vim.api.nvim_get_current_win()
   vim.api.nvim_win_set_buf(S.win, S.buf)
 
@@ -770,15 +780,15 @@ function M.close()
   S.win = nil; S.buf = nil
 end
 
--- Wipe any empty unnamed buffers left over from startup (the "No Name" tab)
-local function wipe_empty_bufs()
+-- Hide the "No Name" startup buffer from the tabufline WITHOUT deleting it.
+-- Deleting it would collapse the editor split — instead just unlist it.
+local function hide_empty_bufs()
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
     if buf ~= S.buf
       and vim.bo[buf].buflisted
       and vim.api.nvim_buf_get_name(buf) == ""
-      and not vim.bo[buf].modified
-      and vim.bo[buf].buftype == "" then
-      pcall(vim.api.nvim_buf_delete, buf, { force = false })
+      and not vim.bo[buf].modified then
+      vim.bo[buf].buflisted = false   -- vanishes from tabufline, window stays open
     end
   end
 end
@@ -792,7 +802,7 @@ function M.open()
   open_win()
   setup_keymaps()
   refresh()
-  vim.schedule(wipe_empty_bufs)  -- defer so NvChad tabufline has already registered the buf
+  vim.schedule(hide_empty_bufs)
 end
 
 function M.toggle()
