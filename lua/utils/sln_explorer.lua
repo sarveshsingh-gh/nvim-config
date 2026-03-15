@@ -281,11 +281,11 @@ local function render()
     local row        = i - 1
     local indent_len = #INDENT * n.indent
 
-    -- Solution: subtle header background (behind all text hl)
+    -- Solution: darker header background
     if n.kind == "solution" then
       pcall(vim.api.nvim_buf_set_extmark, S.buf, HL_NS, row, 0, {
         end_row = row + 1, end_col = 0,
-        hl_group = "CursorLine", hl_eol = true, priority = 50,
+        hl_group = "SlnHeader", hl_eol = true, priority = 50,
       })
     end
 
@@ -775,6 +775,12 @@ local function open_win()
     vim.api.nvim_set_hl(0, "SlnTabBlank", { fg = bg, bg = bg })
     -- Separator in tabline: same fg as SlnExplorerSep, panel bg
     vim.api.nvim_set_hl(0, "SlnTabSep", { fg = fg, bg = bg })
+    -- Header row: darken panel bg by ~15% for the solution title row
+    local r = math.floor(((bg >> 16) & 0xFF) * 0.75)
+    local g2= math.floor(((bg >> 8)  & 0xFF) * 0.75)
+    local b2= math.floor(( bg        & 0xFF) * 0.75)
+    local darker = (r << 16) | (g2 << 8) | b2
+    vim.api.nvim_set_hl(0, "SlnHeader", { bg = darker })
   end)
 
   vim.api.nvim_create_autocmd("WinClosed", {
