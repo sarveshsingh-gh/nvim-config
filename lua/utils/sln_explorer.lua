@@ -432,16 +432,9 @@ local function action_add_nuget(proj_node)
   end
 end
 
-local function action_remove_nuget_or_ref(proj_node)
-  -- Opens easy-dotnet project view where user can pick (r)emove on any ref
+local function action_remove_nuget_or_ref(_)
   local pv = get_dotnet("project-view")
-  if pv then
-    local csproj = get_dotnet("parsers.csproj-parse")
-    if csproj then
-      local project = csproj.get_project_from_project_file(proj_node.path)
-      coroutine.wrap(function() pv.render(project, S.sln_path) end)()
-    end
-  end
+  if pv then coroutine.wrap(pv.open_or_toggle)() end
 end
 
 local function action_new_item(proj_node)
@@ -464,13 +457,9 @@ local function action_test_project(proj_node)
   run_cmd({ "test", vim.fn.fnameescape(proj_node.path) })
 end
 
-local function action_project_view(proj_node)
-  local pv    = get_dotnet("project-view")
-  local csproj = get_dotnet("parsers.csproj-parse")
-  if pv and csproj then
-    local project = csproj.get_project_from_project_file(proj_node.path)
-    coroutine.wrap(function() pv.render(project, S.sln_path) end)()
-  end
+local function action_project_view(_)
+  local pv = get_dotnet("project-view")
+  if pv then coroutine.wrap(pv.open_or_toggle)() end
 end
 
 -- ── File/dir actions ──────────────────────────────────────────────────────────
