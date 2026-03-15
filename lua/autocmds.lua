@@ -15,13 +15,20 @@ autocmd("User", {
   end,
 })
 
--- Open Oil when nvim starts with no file arguments
+-- Open Solution Explorer when nvim starts with no file arguments.
+-- Falls back to Oil if no .slnx / .sln found in CWD.
 autocmd("VimEnter", {
-  group = augroup("OilOnStart", { clear = true }),
+  group = augroup("StartupExplorer", { clear = true }),
   callback = function()
     if vim.fn.argc() == 0 then
       vim.schedule(function()
-        require("oil").open()
+        local has_sln = #vim.fn.glob(vim.fn.getcwd() .. "/*.slnx", false, true) > 0
+                     or #vim.fn.glob(vim.fn.getcwd() .. "/*.sln",  false, true) > 0
+        if has_sln then
+          require("utils.sln_explorer").open()
+        else
+          require("oil").open()
+        end
       end)
     end
   end,
@@ -54,6 +61,25 @@ autocmd("BufWritePre", {
     local save = vim.fn.winsaveview()
     vim.cmd [[keeppatterns %s/\s\+$//e]]
     vim.fn.winrestview(save)
+  end,
+})
+
+-- ── Solution Explorer highlight groups ───────────────────────────────────────
+autocmd("FileType", {
+  group    = augroup("SlnExplorer", { clear = true }),
+  pattern  = "sln_explorer",
+  callback = function()
+    local b = vim.api.nvim_get_current_buf()
+    local w = vim.fn.bufwinid(b)
+    if w == -1 then return end
+    -- solution root  → accent colour
+    vim.fn.matchadd("Title",     [[^󰘐 .\+]],           10, -1, { window = w })
+    -- project nodes  → function colour
+    vim.fn.matchadd("Function",  [[^  󰘐 .\+]],         10, -1, { window = w })
+    -- open folders   → directory colour
+    vim.fn.matchadd("Directory", [[ \+  .\+]],        10, -1, { window = w })
+    -- .cs files      → type colour
+    vim.fn.matchadd("Type",      [[ \+  .\+\.cs\b]],  11, -1, { window = w })
   end,
 })
 

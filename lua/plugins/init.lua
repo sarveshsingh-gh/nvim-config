@@ -135,6 +135,8 @@ return {
 
         -- ── .NET (<leader>n) ─────────────────────────────────────────
         { "<leader>n",   group = ".NET" },
+        { "<leader>ne",  desc  = "Dotnet solution explorer toggle" },
+        { "<leader>nE",  desc  = "Dotnet solution explorer reveal" },
         { "<leader>nb",  desc  = "Dotnet build project" },
         { "<leader>nB",  desc  = "Dotnet build solution" },
         { "<leader>nQ",  desc  = "Dotnet build quickfix" },

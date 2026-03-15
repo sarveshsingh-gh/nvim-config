@@ -151,6 +151,12 @@ end, { desc = "Debug breakpoints quickfix" })
 map("n", "<leader>dbc", function() require("dap").clear_breakpoints() end,
   { desc = "Debug breakpoints clear" })
 
+-- ── Solution Explorer ───────────────────────────────────────────────────────
+map("n", "<leader>ne", function() require("utils.sln_explorer").toggle() end,
+  { desc = "Dotnet solution explorer toggle" })
+map("n", "<leader>nE", function() require("utils.sln_explorer").reveal() end,
+  { desc = "Dotnet solution explorer reveal file" })
+
 -- ── Dotnet — Build ──────────────────────────────────────────────────────────
 map("n", "<leader>nb",  function() require("easy-dotnet").build() end,
   { desc = "Dotnet build project" })
