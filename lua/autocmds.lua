@@ -64,24 +64,6 @@ autocmd("BufWritePre", {
   end,
 })
 
--- ── Solution Explorer highlight groups ───────────────────────────────────────
-autocmd("FileType", {
-  group    = augroup("SlnExplorer", { clear = true }),
-  pattern  = "sln_explorer",
-  callback = function()
-    local b = vim.api.nvim_get_current_buf()
-    local w = vim.fn.bufwinid(b)
-    if w == -1 then return end
-    -- solution root  → accent colour
-    vim.fn.matchadd("Title",     [[^󰘐 .\+]],           10, -1, { window = w })
-    -- project nodes  → function colour
-    vim.fn.matchadd("Function",  [[^  󰘐 .\+]],         10, -1, { window = w })
-    -- open folders   → directory colour
-    vim.fn.matchadd("Directory", [[ \+  .\+]],        10, -1, { window = w })
-    -- .cs files      → type colour
-    vim.fn.matchadd("Type",      [[ \+  .\+\.cs\b]],  11, -1, { window = w })
-  end,
-})
 
 -- Auto-format C# on save via LSP (Roslyn supports it)
 autocmd("BufWritePre", {

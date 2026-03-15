@@ -117,23 +117,40 @@ local function scan_dir(dir, depth, result)
   end
 end
 
+-- ── Highlight namespace ────────────────────────────────────────────────────────
+
+local HL_NS = vim.api.nvim_create_namespace("sln_explorer")
+
+-- kind → highlight group
+local KIND_HL = {
+  solution = "Title",
+  project  = "Function",
+  dir      = "Directory",
+  file     = "Normal",
+}
+
 -- ── Build tree ────────────────────────────────────────────────────────────────
+
+local ARROW_OPEN   = "▾ "   -- expanded  (small downward triangle)
+local ARROW_CLOSE  = "▸ "   -- collapsed (small rightward triangle)
+local ARROW_NONE   = "  "   -- leaf node (file)
 
 local function build_nodes()
   local nodes = {}
   local sln   = S.sln_path
   local name  = vim.fn.fnamemodify(sln, ":t:r")
+  local sln_coll = S.collapsed[sln] or false
 
   -- Solution root
   table.insert(nodes, {
-    text      = I.solution .. name,
+    text      = (sln_coll and ARROW_CLOSE or ARROW_OPEN) .. I.solution .. name,
     indent    = 0,
     kind      = "solution",
     path      = sln,
-    collapsed = S.collapsed[sln] or false,
+    collapsed = sln_coll,
   })
 
-  if S.collapsed[sln] then return nodes end
+  if sln_coll then return nodes end
 
   for _, proj_path in ipairs(parse_projects(sln)) do
     if vim.fn.filereadable(proj_path) == 1 then
@@ -142,7 +159,7 @@ local function build_nodes()
       local is_coll   = S.collapsed[proj_path] or false
 
       table.insert(nodes, {
-        text      = I.project .. proj_name,
+        text      = (is_coll and ARROW_CLOSE or ARROW_OPEN) .. I.project .. proj_name,
         indent    = 1,
         kind      = "project",
         path      = proj_path,
@@ -154,13 +171,13 @@ local function build_nodes()
         local entries = {}
         scan_dir(proj_dir, 0, entries)
         for _, e in ipairs(entries) do
-          local ico = e.is_dir
-            and (S.collapsed[e.path] and I.dir_close or I.dir_open)
-            or icon_for(e.name)
+          local is_dir = e.is_dir
+          local arrow  = is_dir and (S.collapsed[e.path] and ARROW_CLOSE or ARROW_OPEN) or ARROW_NONE
+          local ico    = is_dir and (S.collapsed[e.path] and I.dir_close or I.dir_open) or icon_for(e.name)
           table.insert(nodes, {
-            text      = ico .. e.name,
+            text      = arrow .. ico .. e.name,
             indent    = 2 + e.depth,
-            kind      = e.is_dir and "dir" or "file",
+            kind      = is_dir and "dir" or "file",
             path      = e.path,
             collapsed = S.collapsed[e.path] or false,
           })
@@ -185,6 +202,15 @@ local function render()
   vim.bo[S.buf].modifiable = true
   vim.api.nvim_buf_set_lines(S.buf, 0, -1, false, lines)
   vim.bo[S.buf].modifiable = false
+
+  -- Apply per-kind highlight over full line
+  vim.api.nvim_buf_clear_namespace(S.buf, HL_NS, 0, -1)
+  for i, n in ipairs(S.nodes) do
+    local hl = KIND_HL[n.kind]
+    if hl and hl ~= "Normal" then
+      vim.api.nvim_buf_add_highlight(S.buf, HL_NS, hl, i - 1, 0, -1)
+    end
+  end
 end
 
 local function refresh()
@@ -573,11 +599,14 @@ local function setup_keymaps()
 end
 
 local function open_win()
-  S.buf = vim.api.nvim_create_buf(false, true)
-  vim.bo[S.buf].filetype  = "sln_explorer"
-  vim.bo[S.buf].bufhidden = "wipe"
+  S.buf = vim.api.nvim_create_buf(true, true)   -- listed=true → shows in tabufline
+  vim.bo[S.buf].filetype   = "sln_explorer"
+  vim.bo[S.buf].bufhidden  = "wipe"
   vim.bo[S.buf].modifiable = false
-  vim.api.nvim_buf_set_name(S.buf, "[Solution Explorer]")
+  vim.bo[S.buf].buftype    = "nofile"
+  -- Name shown in tabufline: just the basename so NvChad displays it cleanly
+  local sln_name = vim.fn.fnamemodify(S.sln_path, ":t:r")
+  vim.api.nvim_buf_set_name(S.buf, "Solution Explorer — " .. sln_name)
 
   vim.cmd("topleft " .. WIDTH .. "vsplit")
   S.win = vim.api.nvim_get_current_win()
@@ -588,7 +617,7 @@ local function open_win()
   wo.signcolumn = "no"; wo.foldcolumn = "0"
   wo.wrap = false; wo.winfixwidth = true
   wo.cursorline = true
-  wo.winbar = "  Solution Explorer"
+  wo.winbar = " " .. I.solution .. sln_name
 
   vim.api.nvim_create_autocmd("WinClosed", {
     buffer = S.buf, once = true,
