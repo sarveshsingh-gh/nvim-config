@@ -484,42 +484,50 @@ end
 local function show_help()
   local lines = {
     "  Solution Explorer — Keymaps",
-    "  ─────────────────────────────────────",
-    "  <cr> / <space>  open file / toggle fold",
-    "  zM              collapse all",
-    "  zR              expand all",
-    "  <F5> / R        refresh tree",
-    "  q               close explorer",
-    "  ?               this help",
+    "  ══════════════════════════════════════════",
     "",
-    "  ── On SOLUTION node ───────────────────",
-    "  a   add project to solution",
-    "  D   remove project from solution",
-    "  n   new project",
-    "  B   build solution",
-    "  T   test solution",
-    "  R   dotnet restore",
+    "  ── Global (any node) ──────────────────────",
+    "  <cr>        open file  /  toggle fold",
+    "  <space>     toggle fold",
+    "  zM          collapse all nodes",
+    "  zR          expand  all nodes",
+    "  <F5>        refresh tree",
+    "  q           close Solution Explorer",
+    "  <M-S-p>     Dotnet command palette",
+    "  ?           this help",
     "",
-    "  ── On PROJECT node ────────────────────",
-    "  a   add project reference",
-    "  P   add NuGet package",
-    "  D   open project view (remove refs/pkgs)",
-    "  n   new file / class in project",
-    "  b   build project",
-    "  r   run project",
-    "  t   test project",
-    "  v   project view (refs + NuGet)",
+    "  ── SOLUTION node ──────────────────────────",
+    "  a           add existing project",
+    "  D           remove project from solution",
+    "  n           new project (wizard)",
+    "  B           build solution",
+    "  T           test  solution",
+    "  R           dotnet restore solution",
     "",
-    "  ── On FILE / DIR node ─────────────────",
-    "  <cr> open file",
-    "  r    rename",
-    "  d    delete",
+    "  ── PROJECT node ───────────────────────────",
+    "  a           add project reference",
+    "  P           add NuGet package",
+    "  D           project view → remove ref / pkg",
+    "  n           new file / class in project",
+    "  b           build project",
+    "  r           run   project",
+    "  t           test  project",
+    "  v           project view (refs + NuGet)",
     "",
-    "  Press q to close",
+    "  ── FILE / DIR node ────────────────────────",
+    "  <cr>        open file",
+    "  r           rename",
+    "  d           delete (with confirm)",
+    "",
+    "  ── Toggle from anywhere in Neovim ─────────",
+    "  <leader>ne  toggle Solution Explorer",
+    "  <leader>nE  reveal current file in tree",
+    "",
+    "  Press  q  or  <Esc>  to close this help",
   }
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-  local w = math.max(44, #lines[1] + 2)
+  local w = math.max(48, #lines[2] + 2)
   local h = #lines
   local win = vim.api.nvim_open_win(buf, true, {
     relative = "editor",
@@ -667,7 +675,7 @@ local function open_win()
   vim.bo[S.buf].filetype  = "sln_explorer"
   vim.bo[S.buf].bufhidden = "wipe"
   vim.bo[S.buf].modifiable = false
-  vim.api.nvim_buf_set_name(S.buf, "Solution Explorer")
+  vim.api.nvim_buf_set_name(S.buf, "[Solution Explorer]")
 
   vim.cmd("topleft " .. WIDTH .. "vsplit")
   S.win = vim.api.nvim_get_current_win()
