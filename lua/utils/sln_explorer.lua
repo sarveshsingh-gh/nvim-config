@@ -11,122 +11,25 @@
 local M = {}
 
 -- ── Icons ────────────────────────────────────────────────────────────────────
+-- Use nvim-web-devicons (bundled with NvChad) for file icons — guaranteed
+-- to work with whatever Nerd Font the user has installed.
 
--- Extension → icon (Nerd Font v3)
-local EXT_ICONS = {
-  -- .NET / C#
-  cs        = " ",   -- nf-seti-c_sharp  (C# file)
-  csproj    = " ",   -- nf-seti-visualstudio (project)
-  fsproj    = " ",   -- F# project
-  vbproj    = " ",
-  slnx      = "󰘐 ",
-  sln       = "󰘐 ",
-  props     = " ",   -- nf-seti-visualstudio (MSBuild props)
-  targets   = " ",
-  nuspec    = " ",
-  config    = " ",   -- nf-seti-settings (app.config / web.config)
-  -- Web
-  razor     = " ",   -- nf-md-razor
-  cshtml    = " ",   -- Razor HTML
-  html      = " ",   -- nf-seti-html
-  htm       = " ",
-  css       = " ",   -- nf-seti-css
-  scss      = " ",   -- nf-seti-sass
-  sass      = " ",
-  less      = " ",
-  js        = " ",   -- nf-seti-javascript
-  mjs       = " ",
-  cjs       = " ",
-  ts        = " ",   -- nf-seti-typescript
-  tsx       = " ",   -- nf-seti-react
-  jsx       = " ",
-  vue       = " ",   -- nf-seti-vue
-  svelte    = " ",
-  -- Data / Config
-  json      = " ",   -- nf-seti-json
-  jsonc     = " ",
-  xml       = "󰗀 ",   -- nf-md-xml
-  yaml      = " ",   -- nf-seti-yml
-  yml       = " ",
-  toml      = " ",   -- nf-seti-settings
-  ini       = " ",
-  env       = " ",
-  -- Docs
-  md        = " ",   -- nf-seti-markdown
-  mdx       = " ",
-  txt       = " ",   -- nf-seti-text
-  rst       = " ",
-  pdf       = " ",   -- nf-seti-pdf
-  -- Scripts
-  sh        = " ",   -- nf-seti-shell
-  bash      = " ",
-  zsh       = " ",
-  fish      = " ",
-  ps1       = "󰨊 ",   -- nf-md-powershell
-  psm1      = "󰨊 ",
-  py        = " ",   -- nf-seti-python
-  rb        = " ",   -- nf-seti-ruby
-  lua       = " ",   -- nf-seti-lua
-  -- Database
-  sql       = " ",   -- nf-seti-db
-  db        = " ",
-  sqlite    = " ",
-  -- Images
-  png       = "󰋩 ",   -- nf-md-file_image
-  jpg       = "󰋩 ",
-  jpeg      = "󰋩 ",
-  gif       = "󰋩 ",
-  svg       = "󰋩 ",
-  ico       = "󰋩 ",
-  webp      = "󰋩 ",
-  bmp       = "󰋩 ",
-  -- Archives
-  zip       = "󰿺 ",
-  tar       = "󰿺 ",
-  gz        = "󰿺 ",
-  -- Misc
-  lock      = " ",   -- nf-seti-lock (packages.lock.json etc)
-  log       = "󰌱 ",   -- nf-md-file_document
-  gitignore = " ",
-  editorconfig = " ",
-  default   = " ",   -- nf-seti-default
-}
+local _dv = nil
+local function dv()
+  if _dv == nil then
+    local ok, m = pcall(require, "nvim-web-devicons")
+    _dv = ok and m or false
+  end
+  return _dv
+end
 
--- Exact filename → icon (takes priority over extension)
-local NAME_ICONS = {
-  ["Dockerfile"]            = " ",   -- nf-linux-docker
-  ["docker-compose.yml"]    = " ",
-  ["docker-compose.yaml"]   = " ",
-  [".gitignore"]            = " ",   -- nf-dev-git
-  [".gitattributes"]        = " ",
-  [".editorconfig"]         = " ",   -- nf-seti-settings
-  [".env"]                  = " ",
-  [".env.development"]      = " ",
-  [".env.production"]       = " ",
-  ["nuget.config"]          = " ",
-  ["NuGet.Config"]          = " ",
-  ["global.json"]           = " ",
-  ["Directory.Build.props"] = " ",
-  ["Directory.Build.targets"]=" ",
-  ["Directory.Packages.props"]=" ",
-  ["README.md"]             = " ",   -- nf-seti-info
-  ["LICENSE"]               = "󰿃 ",   -- nf-md-license
-  ["LICENSE.txt"]           = "󰿃 ",
-  ["CHANGELOG.md"]          = "󰓼 ",   -- nf-md-history
-  ["launchSettings.json"]   = " ",
-  ["appsettings.json"]      = " ",
-  ["appsettings.Development.json"] = " ",
-  ["appsettings.Production.json"]  = " ",
-  ["Program.cs"]            = " ",   -- entry-point star
-  ["Startup.cs"]            = " ",
-  ["AssemblyInfo.cs"]       = " ",
-}
-
+-- Special node icons — use the simplest, most universally available glyphs
+-- (Font Awesome set, present in every Nerd Font build)
 local I = {
-  solution  = "󰘐 ",
-  project   = " ",
-  dir_open  = " ",
-  dir_close = " ",
+  solution  = " ",   -- nf-fa-sitemap   (solution)
+  project   = " ",   -- nf-fa-cube      (project)
+  dir_open  = " ",   -- nf-fa-folder_open
+  dir_close = " ",   -- nf-fa-folder
 }
 
 local SKIP_DIRS = { bin = true, obj = true, [".vs"] = true, [".git"] = true }
@@ -146,14 +49,13 @@ local S = {
 -- ── Helpers ───────────────────────────────────────────────────────────────────
 
 local function icon_for(name)
-  if NAME_ICONS[name] then return NAME_ICONS[name] end
-  -- dotfiles like .gitignore → key is the full name
-  if name:sub(1,1) == "." then
-    local key = name:match("^%.(.+)$") or ""
-    if EXT_ICONS[key] then return EXT_ICONS[key] end
+  local d = dv()
+  if d then
+    local ext  = name:match("%.([^./]+)$") or ""
+    local icon = d.get_icon(name, ext, { default = true })
+    if icon and icon ~= "" then return icon .. " " end
   end
-  local ext = name:match("%.([^./]+)$") or ""
-  return EXT_ICONS[ext] or EXT_ICONS.default
+  return " "  -- nf-fa-file fallback
 end
 
 local function find_sln()
@@ -686,6 +588,7 @@ local function open_win()
   wo.signcolumn = "no"; wo.foldcolumn = "0"
   wo.wrap = false; wo.winfixwidth = true
   wo.cursorline = true
+  wo.winbar = "  Solution Explorer"
 
   vim.api.nvim_create_autocmd("WinClosed", {
     buffer = S.buf, once = true,
