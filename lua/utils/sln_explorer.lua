@@ -773,6 +773,8 @@ local function open_win()
       bg = norm.bg or 0x1e2127
     end
     vim.api.nvim_set_hl(0, "SlnTabBlank", { fg = bg, bg = bg })
+    -- Separator in tabline: same fg as SlnExplorerSep, panel bg
+    vim.api.nvim_set_hl(0, "SlnTabSep", { fg = fg, bg = bg })
   end)
 
   vim.api.nvim_create_autocmd("WinClosed", {
@@ -794,7 +796,7 @@ _G._sln_tabline = function()
   local W    = (S.win and vim.api.nvim_win_is_valid(S.win)) and panel_width() or 0
   local tabs = require("nvchad.tabufline.modules")()
   if W > 0 then
-    return "%#SlnTabBlank#" .. string.rep(" ", W + 1) .. tabs
+    return "%#SlnTabBlank#" .. string.rep(" ", W) .. "%#SlnTabSep#│" .. tabs
   end
   return tabs
 end
