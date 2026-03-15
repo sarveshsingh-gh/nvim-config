@@ -776,6 +776,22 @@ local DISPATCH = {
     local leaf = node.kind == "file" or node.kind == "pkg" or node.kind == "projref"
     if not leaf then
       S.collapsed[node.path] = false
+      -- collapse direct children that have never been explicitly opened
+      S.nodes = build_nodes()
+      local found = false
+      for _, n in ipairs(S.nodes) do
+        if n.path == node.path then
+          found = true
+        elseif found then
+          if n.indent <= node.indent then break end
+          if n.indent == node.indent + 1 then
+            local cl = n.kind == "file" or n.kind == "pkg" or n.kind == "projref"
+            if not cl and S.collapsed[n.path] == nil then
+              S.collapsed[n.path] = true
+            end
+          end
+        end
+      end
       local row = vim.api.nvim_win_get_cursor(S.win)[1]
       refresh()
       pcall(vim.api.nvim_win_set_cursor, S.win, { row, 0 })
