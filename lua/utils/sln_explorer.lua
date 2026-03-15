@@ -775,11 +775,11 @@ local function open_win()
     vim.api.nvim_set_hl(0, "SlnTabBlank", { fg = bg, bg = bg })
     -- Separator in tabline: same fg as SlnExplorerSep, panel bg
     vim.api.nvim_set_hl(0, "SlnTabSep", { fg = fg, bg = bg })
-    -- Header row: darken panel bg by ~15% for the solution title row
-    local r = math.floor(((bg >> 16) & 0xFF) * 0.75)
-    local g2= math.floor(((bg >> 8)  & 0xFF) * 0.75)
-    local b2= math.floor(( bg        & 0xFF) * 0.75)
-    local darker = (r << 16) | (g2 << 8) | b2
+    -- Header row: darken panel bg by 25% for the solution title row
+    local r      = math.floor(math.floor(bg / 65536) % 256 * 0.75)
+    local g2     = math.floor(math.floor(bg / 256)   % 256 * 0.75)
+    local b2     = math.floor(bg % 256 * 0.75)
+    local darker = r * 65536 + g2 * 256 + b2
     vim.api.nvim_set_hl(0, "SlnHeader", { bg = darker })
   end)
 
