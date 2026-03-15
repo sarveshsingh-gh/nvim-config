@@ -38,19 +38,21 @@
 
 ## Lsp
 
-Both vim-style and VS-style bindings work for the same actions.
+Neovim 0.11+ standard (`gr*`) and VS-style (F-keys) both work. `<leader>l` shows the full cheat-sheet in which-key.
 
-| Vim style | VS style | Action | Mode |
-|-----------|----------|--------|------|
-| `gd` | `F12` | Lsp definition | n |
-| `gr` | `Shift+F12` | Lsp references (Telescope) | n |
-| `gm` | `Ctrl+F12` | Lsp implementation | n |
-| `<leader>rn` | `F2` | Lsp rename | n |
-| `<leader>ca` | `Alt+.` | Lsp code actions | n, v |
+| Standard (`gr*`) | VS style | Action | Mode |
+|------------------|----------|--------|------|
+| `grn` | `F2` | Lsp rename | n |
+| `gra` | `Alt+.` | Lsp code actions | n, v |
+| `grA` | — | Lsp source actions | n, v |
+| `grd` | `F12` | Lsp definition | n |
+| `grr` | `Shift+F12` | Lsp references (Telescope) | n |
+| `gri` | `Ctrl+F12` | Lsp implementation | n |
+| `grt` | — | Lsp type definition | n |
+| `grq` | — | Lsp diagnostic → quickfix | n |
 | `K` | `Ctrl+Space` | Lsp hover | n |
-| — | `Ctrl+Shift+Space` | Lsp signature help | n |
-| `gD` | — | Lsp declaration | n |
-| `gy` | — | Lsp type definition | n |
+| `<C-k>` | `Ctrl+Shift+Space` | Lsp signature help | i / n |
+| `gO` | — | Lsp document symbols | n |
 | `<leader>cf` | — | Lsp format | n, v |
 | `<leader>ci` | — | Lsp inlay hints (toggle) | n |
 

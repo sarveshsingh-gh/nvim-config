@@ -26,17 +26,27 @@ return {
         { "<F11>",   desc = "Debug step into" },
         { "<S-F11>", desc = "Debug step out" },
 
-        -- ── F-keys: LSP ──────────────────────────────────────────────
+        -- ── LSP standard (Neovim 0.11+ gr* style) ────────────────────
+        { "gr",  group = "LSP" },
+        { "grn", desc  = "Lsp rename" },
+        { "gra", desc  = "Lsp code actions",       mode = { "n", "v" } },
+        { "grA", desc  = "Lsp source actions",     mode = { "n", "v" } },
+        { "grd", desc  = "Lsp definition" },
+        { "grr", desc  = "Lsp references" },
+        { "gri", desc  = "Lsp implementation" },
+        { "grt", desc  = "Lsp type definition" },
+        { "grq", desc  = "Lsp diagnostic quickfix" },
+        { "gO",  desc  = "Lsp document symbols" },
+        { "K",   desc  = "Lsp hover" },
+
+        -- ── LSP VS-style F-keys ───────────────────────────────────────
         { "<F12>",       desc = "Lsp definition",      mode = { "n", "v" } },
         { "<S-F12>",     desc = "Lsp references",      mode = { "n", "v" } },
         { "<C-F12>",     desc = "Lsp implementation",  mode = { "n", "v" } },
         { "<F2>",        desc = "Lsp rename",          mode = { "n", "v" } },
         { "<M-.>",       desc = "Lsp code actions",    mode = { "n", "v" } },
-        { "K",           desc = "Lsp hover" },
         { "<C-Space>",   desc = "Lsp hover" },
-        { "<C-S-Space>", desc = "Lsp signature help",  mode = { "n" } },
-        { "gD",          desc = "Lsp declaration",     mode = { "n" } },
-        { "gy",          desc = "Lsp type definition", mode = { "n" } },
+        { "<C-S-Space>", desc = "Lsp signature help" },
 
         -- ── F-keys: Diagnostic ───────────────────────────────────────
         { "<F8>",   desc = "Diagnostic next" },
@@ -54,36 +64,18 @@ return {
         { "]q", desc  = "Quickfix next" },
         { "]h", desc  = "Git hunk next" },
 
-        -- ── LSP vim-style ─────────────────────────────────────────────
-        { "gd",  desc = "Lsp definition" },
-        { "gr",  desc = "Lsp references" },
-        { "gm",  desc = "Lsp implementation" },
-        { "gD",  desc = "Lsp declaration" },
-        { "gy",  desc = "Lsp type definition" },
-        { "K",   desc = "Lsp hover" },
-        { "<leader>ca", desc = "Lsp code actions", mode = { "n", "v" } },
-        { "<leader>rn", desc = "Lsp rename" },
-
-        -- ── LSP VS-style F-keys ───────────────────────────────────────
-        { "<F12>",       desc = "Lsp definition",      mode = { "n", "v" } },
-        { "<S-F12>",     desc = "Lsp references",      mode = { "n", "v" } },
-        { "<C-F12>",     desc = "Lsp implementation",  mode = { "n", "v" } },
-        { "<F2>",        desc = "Lsp rename",          mode = { "n", "v" } },
-        { "<M-.>",       desc = "Lsp code actions",    mode = { "n", "v" } },
-        { "<C-Space>",   desc = "Lsp hover" },
-        { "<C-S-Space>", desc = "Lsp signature help",  mode = { "n" } },
-
         -- ── LSP reference group (<leader>l) ──────────────────────────
         { "<leader>l",  group = "LSP reference" },
-        { "<leader>ld", desc  = "Lsp definition       [gd / F12]",          mode = { "n", "v" } },
-        { "<leader>lr", desc  = "Lsp references       [gr / S-F12]",        mode = { "n", "v" } },
-        { "<leader>li", desc  = "Lsp implementation   [gm / C-F12]",        mode = { "n", "v" } },
-        { "<leader>ln", desc  = "Lsp rename           [<leader>rn / F2]",   mode = { "n", "v" } },
-        { "<leader>la", desc  = "Lsp code actions     [<leader>ca / Alt+.]", mode = { "n", "v" } },
-        { "<leader>lh", desc  = "Lsp hover            [K / C-Space]",       mode = { "n", "v" } },
-        { "<leader>ls", desc  = "Lsp signature help   [C-S-Space]" },
-        { "<leader>lD", desc  = "Lsp declaration      [gD]" },
-        { "<leader>lt", desc  = "Lsp type definition  [gy]" },
+        { "<leader>ld", desc  = "Lsp definition       [grd / F12]" },
+        { "<leader>lr", desc  = "Lsp references       [grr / S-F12]" },
+        { "<leader>li", desc  = "Lsp implementation   [gri / C-F12]" },
+        { "<leader>ln", desc  = "Lsp rename           [grn / F2]" },
+        { "<leader>la", desc  = "Lsp code actions     [gra / Alt+.]",  mode = { "n", "v" } },
+        { "<leader>lA", desc  = "Lsp source actions   [grA]" },
+        { "<leader>lh", desc  = "Lsp hover            [K / C-Space]" },
+        { "<leader>ls", desc  = "Lsp signature help   [C-k / C-S-Spc]" },
+        { "<leader>lt", desc  = "Lsp type definition  [grt]" },
+        { "<leader>lo", desc  = "Lsp document symbols [gO]" },
 
         -- ── Code / LSP (<leader>c) ───────────────────────────────────
         { "<leader>c",  group = "Code / LSP" },
