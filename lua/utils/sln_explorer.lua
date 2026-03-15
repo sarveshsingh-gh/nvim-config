@@ -268,25 +268,37 @@ local function render()
 
   vim.api.nvim_buf_clear_namespace(S.buf, HL_NS, 0, -1)
   for i, n in ipairs(S.nodes) do
-    local row = i - 1
+    local row        = i - 1
+    local indent_len = #INDENT * n.indent
+
     -- Whole-line kind colour
     local lhl = KIND_HL[n.kind]
     if lhl and lhl ~= "Normal" then
       vim.api.nvim_buf_add_highlight(S.buf, HL_NS, lhl, row, 0, -1)
     end
-    -- Solution node: highlight the whole line as a visual header (CursorLine bg)
+
+    -- Solution node: header background
     if n.kind == "solution" then
       vim.api.nvim_buf_set_extmark(S.buf, HL_NS, row, 0, {
-        end_row    = row + 1, end_col = 0,
-        hl_group   = "CursorLine",
-        hl_eol     = true,
-        priority   = 50,
+        end_row  = row + 1, end_col = 0,
+        hl_group = "CursorLine", hl_eol = true, priority = 50,
       })
     end
+
+    -- Dim the arrow ("v " / "> ") so it looks like a muted guide, not text
+    if n.kind ~= "file" then
+      pcall(vim.api.nvim_buf_set_extmark, S.buf, HL_NS, row, indent_len, {
+        end_col  = indent_len + 2,   -- arrow is always 2 bytes
+        hl_group = "NonText",
+        priority = 160,
+      })
+    end
+
     -- "· N projects" suffix — dimmed
     if n.text_sfx and n._name_end then
       vim.api.nvim_buf_add_highlight(S.buf, HL_NS, "Comment", row, n._name_end, -1)
     end
+
     -- Per-icon colour from devicons / mini.icons
     if n._ihl and n._ibytes and n._ibytes > 0 then
       pcall(vim.api.nvim_buf_set_extmark, S.buf, HL_NS, row, n._pfx, {
@@ -701,13 +713,12 @@ local function open_win()
   wo.wrap = false; wo.winfixwidth = true
   wo.cursorline = true
   wo.winbar = ""
-  -- Match nvim-tree's background so WinSeparator draws a visible border
-  wo.winhighlight = table.concat({
-    "Normal:NvimTreeNormal",
-    "NormalNC:NvimTreeNormalNC",
-    "CursorLine:NvimTreeCursorLine",
-    "WinSeparator:NvimTreeWinSeparator",
-  }, ",")
+  -- Slightly darker background (like nvim-tree) so the WinSeparator line
+  -- is visually distinct. Do NOT override WinSeparator — use the theme's
+  -- color so it stays visible against both panels.
+  wo.winhighlight = "Normal:NvimTreeNormal,NormalNC:NvimTreeNormalNC,CursorLine:NvimTreeCursorLine"
+  -- Force │ as the vertical split character
+  vim.opt_local.fillchars = { vert = "│", vertright = "│" }
 
   vim.api.nvim_create_autocmd("WinClosed", {
     buffer = S.buf, once = true,
