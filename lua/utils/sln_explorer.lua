@@ -756,8 +756,8 @@ local function open_win()
   wo.winbar = ""
   -- Darker panel background (same as nvim-tree)
   wo.winhighlight = "Normal:NvimTreeNormal,NormalNC:NvimTreeNormalNC,CursorLine:NvimTreeCursorLine,WinSeparator:SlnExplorerSep"
-  -- Force a visible │ separator character
-  vim.opt_local.fillchars = { vert = "│", vertright = "│" }
+  -- Hide ~ end-of-buffer markers; force │ separator
+  vim.opt_local.fillchars = { vert = "│", vertright = "│", eob = " " }
   -- Define the separator highlight: use FloatBorder fg (theme-aware, always visible)
   vim.schedule(function()
     local fb = vim.api.nvim_get_hl(0, { name = "FloatBorder", link = false })
@@ -767,17 +767,30 @@ local function open_win()
 
   vim.api.nvim_create_autocmd("WinClosed", {
     buffer = S.buf, once = true,
-    callback = function() S.win = nil; S.buf = nil end,
+    callback = function()
+      S.win = nil; S.buf = nil
+      if _stl_saved ~= nil then
+        vim.o.showtabline = _stl_saved
+        _stl_saved = nil
+      end
+    end,
   })
 end
 
 -- ── Public API ────────────────────────────────────────────────────────────────
+
+local _stl_saved = nil   -- saved showtabline value
 
 function M.close()
   if S.win and vim.api.nvim_win_is_valid(S.win) then
     vim.api.nvim_win_close(S.win, true)
   end
   S.win = nil; S.buf = nil
+  -- Restore tabufline
+  if _stl_saved ~= nil then
+    vim.o.showtabline = _stl_saved
+    _stl_saved = nil
+  end
 end
 
 -- Hide the "No Name" startup buffer from the tabufline WITHOUT deleting it.
@@ -799,6 +812,9 @@ function M.open()
     vim.notify("[SolnExplorer] No .slnx / .sln found in " .. vim.fn.getcwd(), vim.log.levels.WARN)
     return
   end
+  -- Hide the tabufline — it spans full width and cuts through the panel
+  _stl_saved = vim.o.showtabline
+  vim.o.showtabline = 0
   open_win()
   setup_keymaps()
   refresh()
