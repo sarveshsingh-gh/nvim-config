@@ -781,33 +781,33 @@ local function open_win()
     buffer = S.buf, once = true,
     callback = function()
       S.win = nil; S.buf = nil
-      vim.o.tabline = NVCHAD_TABLINE
+      if _saved_stl  ~= nil then vim.o.showtabline = _saved_stl;  _saved_stl  = nil end
+      if _saved_wbar ~= nil then vim.o.winbar = _saved_wbar;      _saved_wbar = nil end
     end,
   })
 end
 
 -- ── Public API ────────────────────────────────────────────────────────────────
 
--- NvChad's exact tabline expression (from ui/tabufline/lazyload.lua)
+-- NvChad's exact tabline / winbar expressions
 local NVCHAD_TABLINE = "%!v:lua.require('nvchad.tabufline.modules')()"
+local NVCHAD_WINBAR  = "%{%v:lua.require('nvchad.tabufline.modules')()%}"
 
--- Custom tabline: blank space over the explorer panel, real tabs in editor area.
-_G._sln_tabline = function()
-  local W    = (S.win and vim.api.nvim_win_is_valid(S.win)) and panel_width() or 0
-  local tabs = require("nvchad.tabufline.modules")()
-  if W > 0 then
-    return "%#SlnTabBlank#" .. string.rep(" ", W) .. "%#SlnTabSep#│" .. tabs
-  end
-  return tabs
-end
+local _saved_stl  = nil   -- saved showtabline
+local _saved_wbar = nil   -- saved global winbar
 
 function M.close()
   if S.win and vim.api.nvim_win_is_valid(S.win) then
     vim.api.nvim_win_close(S.win, true)
   end
   S.win = nil; S.buf = nil
-  -- Restore NvChad's unpadded tabline
-  vim.o.tabline = NVCHAD_TABLINE
+  -- Restore tabline + winbar
+  if _saved_stl ~= nil then
+    vim.o.showtabline = _saved_stl;  _saved_stl  = nil
+  end
+  if _saved_wbar ~= nil then
+    vim.o.winbar = _saved_wbar;      _saved_wbar = nil
+  end
 end
 
 -- Hide the "No Name" startup buffer from the tabufline WITHOUT deleting it.
@@ -829,10 +829,12 @@ function M.open()
     vim.notify("[SolnExplorer] No .slnx / .sln found in " .. vim.fn.getcwd(), vim.log.levels.WARN)
     return
   end
-  -- Switch to padded tabline: blank over explorer, real tabs in editor area
-  vim.o.showtabline = 2
-  vim.o.tabline     = "%!v:lua._sln_tabline()"
-  open_win()
+  -- Hide global tabline (explorer fills to top) + show tabs as winbar on editor windows
+  _saved_stl  = vim.o.showtabline
+  _saved_wbar = vim.o.winbar
+  vim.o.showtabline = 0
+  vim.o.winbar      = NVCHAD_WINBAR
+  open_win()   -- explorer window overrides winbar="" in open_win()
   setup_keymaps()
   refresh()
   vim.schedule(hide_empty_bufs)
