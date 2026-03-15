@@ -99,75 +99,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
       },
     })
 
-    local buf = ev.buf
-    local function map(modes, keys, func, desc)
-      vim.keymap.set(modes, keys, func, { buffer = buf, desc = desc })
-    end
-
-    -- ── Navigation ───────────────────────────────────────────────────────
-    map("n", "gd", vim.lsp.buf.definition,      "Go to definition")
-    map("n", "gD", vim.lsp.buf.declaration,     "Go to declaration")
-    map("n", "gm", vim.lsp.buf.implementation,  "Go to implementation")
-    map("n", "gy", vim.lsp.buf.type_definition, "Go to type definition")
-    map("n", "gr", function()
-      require("telescope.builtin").lsp_references()
-    end, "References (Telescope)")
-    map("n", "K",  vim.lsp.buf.hover, "Hover docs")
-
-    -- ── Code actions & rename ────────────────────────────────────────────
-    map({ "n", "v" }, "ga", vim.lsp.buf.code_action, "Code actions")
-    map("n",          "<leader>rn", vim.lsp.buf.rename,      "Rename symbol")
-
-    -- ── Format ───────────────────────────────────────────────────────────
-    map({ "n", "v" }, "<leader>cf", function()
-      require("conform").format({ async = true, lsp_fallback = true })
-    end, "Format document / selection")
-
-    -- ── Extras ───────────────────────────────────────────────────────────
-    map("n", "<leader>cs", vim.lsp.buf.signature_help, "Signature help")
-    map("n", "<leader>ci", function()
-      vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = buf })
-    end, "Toggle inlay hints")
-
-    -- ── Symbols ──────────────────────────────────────────────────────────
-    map("n", "<leader>fs", function()
-      require("telescope.builtin").lsp_document_symbols()
-    end, "Document symbols")
-    map("n", "<leader>fS", function()
-      require("telescope.builtin").lsp_workspace_symbols()
-    end, "Workspace symbols")
-
-    -- ── Diagnostics navigate ─────────────────────────────────────────────
-    map("n", "]d", function() vim.diagnostic.goto_next() end, "Next diagnostic")
-    map("n", "[d", function() vim.diagnostic.goto_prev() end, "Prev diagnostic")
-    map("n", "]e", function() vim.diagnostic.goto_next { severity = vim.diagnostic.severity.ERROR } end, "Next error")
-    map("n", "[e", function() vim.diagnostic.goto_prev { severity = vim.diagnostic.severity.ERROR } end, "Prev error")
-
-    -- ── Diagnostics lists ────────────────────────────────────────────────
-    map("n", "<leader>cd", vim.diagnostic.open_float, "Diagnostic float")
-    map("n", "<leader>cD", function()
-      require("telescope.builtin").diagnostics { bufnr = 0 }
-    end, "All diagnostics (buffer)")
-    map("n", "<leader>cE", function()
-      require("telescope.builtin").diagnostics { bufnr = 0, severity = vim.diagnostic.severity.ERROR }
-    end, "Errors (buffer)")
-    map("n", "<leader>cW", function()
-      require("telescope.builtin").diagnostics { bufnr = 0, severity = vim.diagnostic.severity.WARN }
-    end, "Warnings (buffer)")
-    map("n", "<leader>cx", function()
-      require("telescope.builtin").diagnostics()
-    end, "All diagnostics (workspace)")
-
-    -- ── Register groups with which-key so they appear in the popup ───────
-    local ok, wk = pcall(require, "which-key")
-    if ok then
-      wk.add({
-        { "g",          buffer = buf, group = "Goto" },
-        { "<leader>c",  buffer = buf, group = "Code / LSP" },
-        { "<leader>f",  buffer = buf, group = "Find" },
-        { "[",          buffer = buf, group = "Prev" },
-        { "]",          buffer = buf, group = "Next" },
-      })
-    end
+    -- ── Re-apply diagnostic config (Roslyn resets it after LazyDone) ────
+    -- Keymaps are global — registered in lua/mappings.lua.
   end,
 })

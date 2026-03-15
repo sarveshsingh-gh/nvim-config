@@ -1,187 +1,218 @@
 # Neovim Keymaps Reference
 
 > **Leader** = `Space`
+> **Cheatsheet group** = first word of each description (used by `:NvCheatsheet`)
 
 ---
 
-## General
-
-| Key | Action |
-|-----|--------|
-| `jk` | Escape insert mode |
-| `;` | Open command mode (`:`) |
-| `<leader>w` | Save file |
-| `<leader>q` | Quit |
-| `<C-S-p>` | Dotnet command palette |
-| `-` | Oil: open parent directory |
-| `J` (visual) | Move selection down |
-| `K` (visual) | Move selection up |
-| `<C-d>` / `<C-u>` | Scroll down / up (cursor centred) |
-| `n` / `N` | Next / prev search result (centred) |
-
----
-
-## LSP — Visual Studio Style
+## File
 
 | Key | Action | Mode |
 |-----|--------|------|
-| `F12` | Go to definition | n, v |
-| `Shift+F12` | Find all references | n, v |
-| `Ctrl+F12` | Go to implementation | n, v |
-| `F2` | Rename symbol | n, v |
-| `Alt+.` | Code actions | n, v |
-| `K` / `Ctrl+Space` | Hover docs | n, v |
-| `Ctrl+Shift+Space` | Parameter info / signature help | n |
-| `<leader>cf` | Format document / selection | n, v |
-| `<leader>ci` | Toggle inlay hints | n |
+| `<leader>w` | File save | n |
+| `<leader>q` | File quit | n |
+| `-` | File open parent (Oil) | n |
+| `<leader>?` | Which-key all keymaps (searchable) | n |
 
 ---
 
-## Diagnostics
-
-| Key | Action |
-|-----|--------|
-| `F8` | Next diagnostic |
-| `Shift+F8` | Prev diagnostic |
-| `]d` / `[d` | Next / prev diagnostic |
-| `<leader>cd` | Diagnostic float (current line) |
-| `<leader>cD` | All diagnostics — buffer (Telescope) |
-| `<leader>cE` | Errors — buffer (Telescope) |
-| `<leader>cW` | Warnings — buffer (Telescope) |
-| `<leader>cx` | All diagnostics — workspace (Telescope) |
-
----
-
-## Debug (DAP) — Visual Studio Style
-
-| Key | Action |
-|-----|--------|
-| `F5` | Continue / Start |
-| `Shift+F5` | Stop / Terminate |
-| `F9` | Toggle breakpoint |
-| `F10` | Step over |
-| `F11` | Step into |
-| `Shift+F11` | Step out |
-
-### Leader extras
+## Escape
 
 | Key | Action | Mode |
 |-----|--------|------|
-| `<leader>dc` | Continue / Start | n |
-| `<leader>dx` | Terminate | n |
-| `<leader>dl` | Run last config | n |
-| `<leader>dr` | Open REPL | n |
-| `<leader>du` | Toggle DAP UI | n |
-| `<leader>dw` | Watch expression | n, v |
-| `<leader>dp` | Peek value under cursor | n, v |
+| `jk` | Escape insert mode | i |
+
+---
+
+## Editor
+
+| Key | Action | Mode |
+|-----|--------|------|
+| `;` | Editor command mode | n, v |
+| `J` | Move selection down | v |
+| `K` | Move selection up | v |
+| `<C-d>` / `<C-u>` | Scroll down / up (cursor centred) | n |
+| `n` / `N` | Next / prev search result (centred) | n |
+
+---
+
+## Lsp
+
+Both vim-style and VS-style bindings work for the same actions.
+
+| Vim style | VS style | Action | Mode |
+|-----------|----------|--------|------|
+| `gd` | `F12` | Lsp definition | n |
+| `gr` | `Shift+F12` | Lsp references (Telescope) | n |
+| `gm` | `Ctrl+F12` | Lsp implementation | n |
+| `<leader>rn` | `F2` | Lsp rename | n |
+| `<leader>ca` | `Alt+.` | Lsp code actions | n, v |
+| `K` | `Ctrl+Space` | Lsp hover | n |
+| — | `Ctrl+Shift+Space` | Lsp signature help | n |
+| `gD` | — | Lsp declaration | n |
+| `gy` | — | Lsp type definition | n |
+| `<leader>cf` | — | Lsp format | n, v |
+| `<leader>ci` | — | Lsp inlay hints (toggle) | n |
+
+---
+
+## Diagnostic
+
+| Key | Action | Mode |
+|-----|--------|------|
+| `F8` | Diagnostic next | n |
+| `Shift+F8` | Diagnostic prev | n |
+| `]d` / `[d` | Diagnostic next / prev | n |
+| `]e` / `[e` | Diagnostic next error / prev error | n |
+| `<leader>cd` | Diagnostic float (current line) | n |
+| `<leader>cD` | Diagnostic buffer all (Telescope) | n |
+| `<leader>cE` | Diagnostic buffer errors (Telescope) | n |
+| `<leader>cW` | Diagnostic buffer warnings (Telescope) | n |
+| `<leader>cx` | Diagnostic workspace all (Telescope) | n |
+
+---
+
+## Find (Telescope)
+
+| Key | Action | Mode |
+|-----|--------|------|
+| `<leader>ff` | Find files | n |
+| `<leader>fg` | Find grep (live) | n |
+| `<leader>fb` | Find buffers | n |
+| `<leader>fo` | Find recent files | n |
+| `<leader>fh` | Find help tags | n |
+| `<leader>fs` | Find document symbols | n |
+| `<leader>fS` | Find workspace symbols | n |
+| `<leader>fz` | Find zoxide dirs | n |
+
+---
+
+## Git
+
+| Key | Action | Mode |
+|-----|--------|------|
+| `<leader>gs` | Git status (Fugitive) | n |
+| `<leader>gc` | Git commit | n |
+| `<leader>gP` | Git push | n |
+| `<leader>gl` | Git log | n |
+| `<leader>gb` | Git blame | n |
+| `<leader>gd` | Git diff view | n |
+| `<leader>gD` | Git diff close | n |
+| `<leader>gh` | Git file history (current file) | n |
+| `<leader>gH` | Git repo history | n |
+| `]h` / `[h` | Git hunk next / prev | n |
+
+---
+
+## Debug (DAP)
+
+### F-key shortcuts
+
+| Key | Action | Mode |
+|-----|--------|------|
+| `F5` | Debug continue | n |
+| `Shift+F5` | Debug stop | n |
+| `F9` | Debug breakpoint toggle | n |
+| `F10` | Debug step over | n |
+| `F11` | Debug step into | n |
+| `Shift+F11` | Debug step out | n |
+
+### Leader extras (`<leader>d`)
+
+| Key | Action | Mode |
+|-----|--------|------|
+| `<leader>dc` | Debug continue | n |
+| `<leader>dx` | Debug terminate | n |
+| `<leader>dl` | Debug run last | n |
+| `<leader>dr` | Debug repl open | n |
+| `<leader>du` | Debug ui toggle | n |
+| `<leader>dw` | Debug watch expression | n, v |
+| `<leader>dp` | Debug peek value | n, v |
 
 ### Breakpoints (`<leader>db`)
 
-| Key | Action |
-|-----|--------|
-| `<leader>dbt` | Toggle breakpoint |
-| `<leader>dbB` | Conditional breakpoint |
-| `<leader>dbb` | List all (Telescope) |
-| `<leader>dbq` | List all → quickfix |
-| `<leader>dbc` | Clear all |
+| Key | Action | Mode |
+|-----|--------|------|
+| `<leader>dbt` | Debug breakpoint toggle | n |
+| `<leader>dbB` | Debug breakpoint conditional | n |
+| `<leader>dbb` | Debug breakpoints list (Telescope) | n |
+| `<leader>dbq` | Debug breakpoints quickfix | n |
+| `<leader>dbc` | Debug breakpoints clear | n |
 
 ---
 
-## Find / Telescope (`<leader>f`)
-
-| Key | Action |
-|-----|--------|
-| `<leader>ff` | Find files |
-| `<leader>fg` | Live grep |
-| `<leader>fb` | Buffers |
-| `<leader>fo` | Recent files |
-| `<leader>fh` | Help tags |
-| `<leader>fs` | Document symbols |
-| `<leader>fS` | Workspace symbols |
-| `<leader>fz` | Zoxide frecent directories |
-
----
-
-## Git (`<leader>g`)
-
-| Key | Action |
-|-----|--------|
-| `<leader>gs` | Git status (Fugitive) |
-| `<leader>gc` | Git commit |
-| `<leader>gP` | Git push |
-| `<leader>gl` | Git log (oneline) |
-| `<leader>gb` | Git blame |
-| `<leader>gd` | Diffview open |
-| `<leader>gD` | Diffview close |
-| `<leader>gh` | File history (current file) |
-| `<leader>gH` | Repo history |
-| `]h` / `[h` | Next / prev git hunk |
-
----
-
-## .NET (`<leader>n`)
+## Dotnet
 
 ### Build & Run
 
-| Key | Action |
-|-----|--------|
-| `<leader>nb` | Build project |
-| `<leader>nB` | Build solution |
-| `<leader>nqb` | Build → quickfix |
-| `<leader>nc` | Clean |
-| `<leader>nR` | Restore packages |
-| `<leader>nr` | Run project |
-| `<leader>nrp` | Run with launch profile |
-| `<leader>nw` | Watch / hot-reload |
+| Key | Action | Mode |
+|-----|--------|------|
+| `<leader>nb` | Dotnet build project | n |
+| `<leader>nB` | Dotnet build solution | n |
+| `<leader>nqb` | Dotnet build quickfix | n |
+| `<leader>nr` | Dotnet run project | n |
+| `<leader>nrp` | Dotnet run profile | n |
+| `<leader>nw` | Dotnet watch hot-reload | n |
 
 ### Test
 
-| Key | Action |
-|-----|--------|
-| `<leader>nt` | Test project |
-| `<leader>nts` | Test solution |
-| `<leader>nT` | Test runner UI |
+| Key | Action | Mode |
+|-----|--------|------|
+| `<leader>nt` | Dotnet test project | n |
+| `<leader>nts` | Dotnet test solution | n |
+| `<leader>nT` | Dotnet test runner | n |
 
-### NuGet (`<leader>np`)
-
-| Key | Action |
-|-----|--------|
-| `<leader>npa` | Add package |
-| `<leader>npr` | Remove package |
-| `<leader>npo` | Outdated packages |
-| `<leader>npv` | Project dependencies |
-
-### Misc
-
-| Key | Action |
-|-----|--------|
-| `<leader>nD` | Workspace diagnostics |
-| `<leader>nS` | User secrets |
-
----
-
-## Quickfix / Trouble (`<leader>x`)
-
-| Key | Action |
-|-----|--------|
-| `<leader>xo` | Open quickfix |
-| `<leader>xc` | Close quickfix |
-| `]q` / `[q` | Next / prev item |
-| `<leader>xx` | Trouble: workspace diagnostics |
-| `<leader>xd` | Trouble: buffer diagnostics |
-| `<leader>xs` | Trouble: symbols |
-| `<leader>xl` | Trouble: LSP references / defs |
-| `<leader>xq` | Trouble: quickfix list |
-
----
-
-## Search & Replace — Spectre (`<leader>s`)
+### Packages / NuGet (`<leader>np`)
 
 | Key | Action | Mode |
 |-----|--------|------|
-| `<leader>sr` | Open Spectre | n |
-| `<leader>sw` | Search word / selection | n, v |
-| `<leader>sf` | Search in current file | n |
+| `<leader>npa` | Dotnet package add | n |
+| `<leader>npr` | Dotnet package remove | n |
+| `<leader>npo` | Dotnet package outdated | n |
+| `<leader>npv` | Dotnet package view | n |
+
+### Misc
+
+| Key | Action | Mode |
+|-----|--------|------|
+| `<leader>nc` | Dotnet clean project | n |
+| `<leader>nR` | Dotnet restore packages | n |
+| `<leader>nD` | Dotnet diagnostics workspace | n |
+| `<leader>nS` | Dotnet secrets user | n |
+| `<M-S-p>` | Dotnet command palette | n |
+
+---
+
+## Quickfix
+
+| Key | Action | Mode |
+|-----|--------|------|
+| `<leader>xo` | Quickfix open | n |
+| `<leader>xc` | Quickfix close | n |
+| `]q` / `[q` | Quickfix next / prev | n |
+
+---
+
+## Trouble
+
+| Key | Action | Mode |
+|-----|--------|------|
+| `<leader>xx` | Trouble workspace diagnostics | n |
+| `<leader>xd` | Trouble buffer diagnostics | n |
+| `<leader>xs` | Trouble symbols | n |
+| `<leader>xl` | Trouble lsp references | n |
+| `<leader>xq` | Trouble quickfix list | n |
+
+---
+
+## Search / Replace (Spectre)
+
+| Key | Action | Mode |
+|-----|--------|------|
+| `<leader>sr` | Search toggle spectre | n |
+| `<leader>sw` | Search current word | n |
+| `<leader>sw` | Search selection | v |
+| `<leader>sf` | Search in file | n |
 
 ---
 
@@ -194,7 +225,7 @@
 | `gsr` | Replace surrounding |
 | `gsf` / `gsF` | Find surrounding right / left |
 
-> Example: cursor on word → `gsa"` wraps in quotes, `gsd"` removes, `gsr"'` changes `"` → `'`
+> Example: `gsa"` wraps in quotes, `gsd"` removes, `gsr"'` changes `"` → `'`
 
 ---
 
@@ -202,9 +233,9 @@
 
 | Key | Action | Mode |
 |-----|--------|------|
-| `s` | Jump (type 2 chars) | n, v, o |
-| `S` | Treesitter select | n, v, o |
-| `r` | Remote flash | o |
+| `s` | Flash jump (2 chars) | n, v, o |
+| `S` | Flash treesitter select | n, v, o |
+| `r` | Flash remote | o |
 
 ---
 
