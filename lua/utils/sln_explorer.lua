@@ -419,7 +419,7 @@ end
 
 -- Run a dotnet CLI command in a split terminal
 local function run_cmd(args, on_exit)
-  vim.cmd("botright 12split")
+  vim.cmd("botright 12new")   -- new empty buffer — termopen requires unmodified buffer
   local term_win = vim.api.nvim_get_current_win()
   local cmd      = "dotnet " .. table.concat(args, " ")
   vim.fn.termopen(cmd, {
@@ -793,10 +793,10 @@ local function setup_keymaps()
   vim.keymap.set("n", "<F5>", refresh,   o)
   vim.keymap.set("n", "q",    M.close,   o)
   vim.keymap.set("n", "<M-S-p>", "<cmd>Dotnet<cr>", o)
-  vim.keymap.set("n", "W", function()   -- collapse all
+  vim.keymap.set("n", "W", function()   -- collapse all (keep solution expanded)
     for _, n in ipairs(S.nodes) do
       local leaf = n.kind == "file" or n.kind == "pkg" or n.kind == "projref"
-      if not leaf then S.collapsed[n.path] = true end
+      if not leaf and n.kind ~= "solution" then S.collapsed[n.path] = true end
     end
     refresh()
   end, o)
