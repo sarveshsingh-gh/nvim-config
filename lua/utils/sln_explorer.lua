@@ -725,10 +725,14 @@ local function action_new_item(proj_node, target_dir)
         -- allow "sub/path/ClassName" → creates in out_dir/sub/path/
         local sub  = name:match("^(.+)/[^/]+$")  -- everything before last /
         local base = name:match("([^/]+)$")       -- just the class name
-        local dest = sub and (out_dir .. "/" .. sub) or out_dir
-        vim.fn.mkdir(dest, "p")
-        cmd       = { "dotnet", "new", tpl.value, "-o", dest, "-n", base }
-        file_path = dest .. "/" .. base .. tpl.ext
+        local dest_abs = sub and (out_dir .. "/" .. sub) or out_dir
+        vim.fn.mkdir(dest_abs, "p")
+        -- Pass a relative path from the project root so dotnet can derive
+        -- the correct namespace (RootNamespace + relative folder segments).
+        local dest_rel = dest_abs:sub(#proj_node.dir + 2)
+        local o_flag   = dest_rel ~= "" and dest_rel or "."
+        cmd       = { "dotnet", "new", tpl.value, "-o", o_flag, "-n", base }
+        file_path = dest_abs .. "/" .. base .. tpl.ext
       end
 
       local stderr = {}
