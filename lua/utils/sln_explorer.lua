@@ -1356,6 +1356,44 @@ function M.reveal()
   end
 end
 
+-- Standalone new-item: works without the explorer open.
+-- Auto-detects the project from the current buffer; falls back to a picker.
+function M.new_item()
+  local sln = S.sln_path or find_sln()
+  if not sln then
+    vim.notify("[SolnExplorer] No .sln found in cwd", vim.log.levels.WARN)
+    return
+  end
+  if not S.sln_path then S.sln_path = sln end
+
+  local proj_paths = parse_projects(sln)
+  if #proj_paths == 0 then
+    vim.notify("[SolnExplorer] No projects found in solution", vim.log.levels.WARN)
+    return
+  end
+
+  -- Match current buffer to a project
+  local cur_file = vim.api.nvim_buf_get_name(0)
+  for _, pp in ipairs(proj_paths) do
+    local pd = vim.fn.fnamemodify(pp, ":h")
+    if cur_file ~= "" and cur_file:sub(1, #pd + 1) == pd .. "/" then
+      local target = vim.fn.fnamemodify(cur_file, ":h")
+      action_new_item({ path = pp, dir = pd }, target)
+      return
+    end
+  end
+
+  -- No match — let user pick a project first
+  vim.ui.select(proj_paths, {
+    prompt      = "Select project:",
+    format_item = function(pp) return vim.fn.fnamemodify(pp, ":t:r") end,
+  }, function(pp)
+    if pp then
+      action_new_item({ path = pp, dir = vim.fn.fnamemodify(pp, ":h") })
+    end
+  end)
+end
+
 -- Expand collapsed ancestors and scroll to target_path in the tree.
 local function reveal_path(target_path)
   if not S.sln_path then return end
