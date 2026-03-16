@@ -189,6 +189,8 @@ end
 -- ── Solution Explorer ───────────────────────────────────────────────────────
 map("n", "<leader>ne", function() require("utils.sln_explorer").toggle() end,
   { desc = "Dotnet solution explorer toggle" })
+map("n", "<leader>nx", function() require("utils.sln_explorer").stop() end,
+  { desc = "Dotnet stop running process" })
 map("n", "<leader>nE", function() require("utils.sln_explorer").reveal() end,
   { desc = "Dotnet solution explorer reveal file" })
 map("n", "<leader>nn", function() require("utils.sln_explorer").new_item() end,
