@@ -411,7 +411,7 @@ return {
   -- Prerequisite: dotnet tool install -g EasyDotnet
   {
     "GustavEikaas/easy-dotnet.nvim",
-    ft           = { "cs", "vb", "csproj", "sln", "slnx", "props" },
+    event        = "VeryLazy",
     dependencies = {
       "nvim-lua/plenary.nvim",
       "nvim-telescope/telescope.nvim",
