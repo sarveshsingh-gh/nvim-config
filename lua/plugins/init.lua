@@ -407,17 +407,20 @@ return {
     },
   },
 
-  -- ── easy-dotnet: .NET project management, test runner, NuGet, secrets ────
-  -- Prerequisite: dotnet tool install -g EasyDotnet
+  -- ── dotnet.nvim: custom .NET plugin (local dev) ──────────────────────────
   {
-    "GustavEikaas/easy-dotnet.nvim",
+    dir          = vim.fn.expand("~/dotnet.nvim"),
+    name         = "dotnet.nvim",
     event        = "VeryLazy",
     dependencies = {
       "nvim-lua/plenary.nvim",
       "nvim-telescope/telescope.nvim",
+      "mfussenegger/nvim-dap",
+      "rcarriga/nvim-dap-ui",
+      "nvim-neotest/nvim-nio",
     },
     config = function()
-      require "configs.dotnet"
+      require("dotnet").setup()
     end,
   },
 
