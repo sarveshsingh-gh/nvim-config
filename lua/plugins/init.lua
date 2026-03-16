@@ -491,4 +491,42 @@ return {
     dependencies = { "nvim-lua/plenary.nvim" },
     opts         = {},
   },
+
+  -- ── noice.nvim: command line, notifications, LSP progress UI ─────────────
+  {
+    "folke/noice.nvim",
+    event        = "VeryLazy",
+    dependencies = { "MunifTanjim/nui.nvim" },
+    opts = {
+      -- leave cmdline and popupmenu alone (NvChad handles those)
+      cmdline   = { enabled = false },
+      popupmenu = { enabled = false },
+      messages  = { enabled = false },
+      -- only take over notifications
+      notify = { enabled = true },
+      lsp = {
+        progress    = { enabled = true },
+        hover       = { enabled = false },
+        signature   = { enabled = false },
+        message     = { enabled = false },
+        override = {
+          ["vim.lsp.util.convert_input_to_markdown_lines"] = false,
+          ["vim.lsp.util.stylize_markdown"]                = false,
+          ["cmp.entry.get_documentation"]                  = false,
+        },
+      },
+      routes = {
+        -- swallow "written" messages
+        { filter = { event = "msg_show", find = "written" }, opts = { skip = true } },
+        -- swallow search count noise
+        { filter = { event = "msg_show", find = "^/" },      opts = { skip = true } },
+      },
+      views = {
+        notify = {
+          border = { style = "rounded" },
+          position = { row = 2, col = "100%" },
+        },
+      },
+    },
+  },
 }
