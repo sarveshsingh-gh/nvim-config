@@ -307,17 +307,19 @@ local function build_nodes()
           if not deps_coll then
             for _, pr in ipairs(deps_data.projs) do
               table.insert(nodes, {
-                text    = I.projref .. pr.name,
-                indent  = 3,  kind = "projref",  path = proj_path .. "::projref::" .. pr.name,
+                text      = I.projref .. pr.name,
+                indent    = 3,  kind = "projref",  path = proj_path .. "::projref::" .. pr.name,
                 collapsed = false,  _ibytes = #I.projref,  _ihl = nil,
+                _proj_path = proj_path,  _ref_path = pr.path,
               })
             end
             for _, pk in ipairs(deps_data.pkgs) do
               table.insert(nodes, {
-                text     = I.pkg .. pk.name,
-                text_sfx = pk.version ~= "" and ("  " .. pk.version) or nil,
-                indent   = 3,  kind = "pkg",  path = proj_path .. "::pkg::" .. pk.name,
+                text      = I.pkg .. pk.name,
+                text_sfx  = pk.version ~= "" and ("  " .. pk.version) or nil,
+                indent    = 3,  kind = "pkg",  path = proj_path .. "::pkg::" .. pk.name,
                 collapsed = false,  _ibytes = #I.pkg,  _ihl = nil,
+                _proj_path = proj_path,  _pkg_name = pk.name,
               })
             end
           end
@@ -709,9 +711,69 @@ local function action_add_nuget(proj_node)
   end
 end
 
-local function action_remove_nuget_or_ref(_)
-  local pv = get_dotnet("project-view")
-  if pv then coroutine.wrap(pv.open_or_toggle)() end
+local function run_remove_cmd(cmd, label)
+  local stderr = {}
+  vim.fn.jobstart(cmd, {
+    on_stderr = function(_, data)
+      for _, l in ipairs(data) do if l ~= "" then table.insert(stderr, l) end end
+    end,
+    on_exit = function(_, code)
+      vim.schedule(function()
+        if code ~= 0 then
+          vim.notify("[SolnExplorer] " .. label .. " failed:\n" .. table.concat(stderr, "\n"), vim.log.levels.ERROR)
+        else
+          vim.notify("[SolnExplorer] " .. label, vim.log.levels.INFO)
+          refresh()
+        end
+      end)
+    end,
+  })
+end
+
+local function action_remove_package(node)
+  local proj = node._proj_path
+  local pkg  = node._pkg_name
+  if not proj or not pkg then return end
+  confirm("Remove package '" .. pkg .. "'?", function()
+    run_remove_cmd({ "dotnet", "remove", proj, "package", pkg }, "Removed " .. pkg)
+  end)
+end
+
+local function action_remove_projref(node)
+  local proj = node._proj_path
+  local ref  = node._ref_path
+  if not proj or not ref then return end
+  local name = vim.fn.fnamemodify(ref, ":t:r")
+  confirm("Remove project reference '" .. name .. "'?", function()
+    run_remove_cmd({ "dotnet", "remove", proj, "reference", ref }, "Removed ref " .. name)
+  end)
+end
+
+local function action_remove_from_project(proj_node)
+  local deps = parse_deps(proj_node.path)
+  local items = {}
+  for _, pk in ipairs(deps.pkgs)  do table.insert(items, { label = "pkg: "    .. pk.name,  kind = "pkg",  name = pk.name,  proj = proj_node.path }) end
+  for _, pr in ipairs(deps.projs) do table.insert(items, { label = "ref: "    .. pr.name,  kind = "ref",  path = pr.path,  proj = proj_node.path }) end
+  if #items == 0 then
+    vim.notify("[SolnExplorer] No packages or references to remove", vim.log.levels.INFO)
+    return
+  end
+  vim.ui.select(items, {
+    prompt      = "Remove from " .. vim.fn.fnamemodify(proj_node.path, ":t:r") .. ":",
+    format_item = function(i) return i.label end,
+  }, function(item)
+    if not item then return end
+    if item.kind == "pkg" then
+      confirm("Remove package '" .. item.name .. "'?", function()
+        run_remove_cmd({ "dotnet", "remove", item.proj, "package", item.name }, "Removed " .. item.name)
+      end)
+    else
+      local name = vim.fn.fnamemodify(item.path, ":t:r")
+      confirm("Remove project reference '" .. name .. "'?", function()
+        run_remove_cmd({ "dotnet", "remove", item.proj, "reference", item.path }, "Removed ref " .. name)
+      end)
+    end
+  end)
 end
 
 local NEW_ITEM_TEMPLATES = {
@@ -1048,7 +1110,9 @@ local DISPATCH = {
   end,
   ["D"] = function(node, row)
     if     node.kind == "solution" then action_remove_project()
-    elseif node.kind == "project"  then action_remove_nuget_or_ref(node)
+    elseif node.kind == "project"  then action_remove_from_project(node)
+    elseif node.kind == "pkg"      then action_remove_package(node)
+    elseif node.kind == "projref"  then action_remove_projref(node)
     elseif node.kind == "file" or node.kind == "dir" then action_delete(node)
     end
   end,
