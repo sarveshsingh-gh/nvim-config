@@ -339,7 +339,7 @@ return {
                     "dapui_breakpoints", "dapui_console", "dap-repl" },
         callback = function(ev)
           local o = { buffer = ev.buf, silent = true }
-          vim.keymap.set("n", "x",       function() require("utils.sln_explorer").stop() end, o)
+          vim.keymap.set("n", "x",       function() require("dotnet.core.runner").stop_all() end, o)
           vim.keymap.set("n", "<Tab>",   function() dap_cycle(1)  end, o)
           vim.keymap.set("n", "<S-Tab>", function() dap_cycle(-1) end, o)
         end,

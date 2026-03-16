@@ -25,7 +25,7 @@ autocmd("VimEnter", {
         local has_sln = #vim.fn.glob(vim.fn.getcwd() .. "/*.slnx", false, true) > 0
                      or #vim.fn.glob(vim.fn.getcwd() .. "/*.sln",  false, true) > 0
         if has_sln then
-          require("utils.sln_explorer").open()
+          require("dotnet.ui.explorer").open()
         else
           require("oil").open()
         end
