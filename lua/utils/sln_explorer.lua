@@ -1653,6 +1653,112 @@ end
 
 M.stop = stop_running
 
+-- Read /proc/<pid>/cmdline and format as a human-readable string.
+local function read_cmdline(pid)
+  local f = io.open("/proc/" .. tostring(pid) .. "/cmdline", "r")
+  if not f then return nil end
+  local s = f:read("*a"); f:close()
+  return s:gsub("%z", " "):gsub("%s+$", "")
+end
+
+-- Collect every terminal buffer that has an active job.
+local function collect_jobs()
+  local seen   = {}
+  local result = {}
+
+  local function add(buf, job_id, label)
+    if seen[job_id] then return end
+    seen[job_id] = true
+    -- try to get a richer command from /proc
+    local ok, pid = pcall(vim.fn.jobpid, job_id)
+    local cmd = (ok and pid and read_cmdline(pid)) or label or ("job " .. job_id)
+    table.insert(result, { job_id = job_id, buf = buf, cmd = cmd })
+  end
+
+  -- 1. Our tracked run job
+  if S.job_id then add(S.term_buf, S.job_id, "dotnet run") end
+
+  -- 2. Every loaded terminal buffer
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_loaded(buf) and vim.bo[buf].buftype == "terminal" then
+      local jid = vim.b[buf].terminal_job_id
+      if jid then add(buf, jid, vim.api.nvim_buf_get_name(buf)) end
+    end
+  end
+
+  return result
+end
+
+-- Telescope picker: list running jobs, preview their output, stop on select.
+function M.list_jobs()
+  local jobs = collect_jobs()
+  if #jobs == 0 then
+    vim.notify("[SolnExplorer] No running processes", vim.log.levels.INFO)
+    return
+  end
+
+  local ok_p,  pickers    = pcall(require, "telescope.pickers")
+  local ok_f,  finders    = pcall(require, "telescope.finders")
+  local ok_c,  conf       = pcall(require, "telescope.config")
+  local ok_a,  actions    = pcall(require, "telescope.actions")
+  local ok_as, act_state  = pcall(require, "telescope.actions.state")
+  local ok_pr, previewers = pcall(require, "telescope.previewers")
+  if not (ok_p and ok_f and ok_c and ok_a and ok_as and ok_pr) then
+    vim.notify("Telescope not available", vim.log.levels.WARN)
+    return
+  end
+
+  local previewer = previewers.new_buffer_previewer({
+    title = "Output",
+    define_preview = function(self, entry)
+      local pbuf = self.state.bufnr
+      local src  = entry.value.buf
+      if src and vim.api.nvim_buf_is_valid(src) then
+        -- copy last 200 lines of the terminal buffer into the preview
+        local line_count = vim.api.nvim_buf_line_count(src)
+        local start      = math.max(0, line_count - 200)
+        local lines      = vim.api.nvim_buf_get_lines(src, start, line_count, false)
+        vim.api.nvim_buf_set_lines(pbuf, 0, -1, false, lines)
+        vim.bo[pbuf].filetype = "log"
+        -- scroll preview to bottom
+        local pwin = self.state.winid
+        if pwin and vim.api.nvim_win_is_valid(pwin) then
+          pcall(vim.api.nvim_win_set_cursor, pwin, { #lines, 0 })
+        end
+      else
+        vim.api.nvim_buf_set_lines(pbuf, 0, -1, false, { "(no output buffer)" })
+      end
+    end,
+  })
+
+  pickers.new({}, {
+    prompt_title = "Running Processes  (Enter = stop)",
+    finder = finders.new_table({
+      results     = jobs,
+      entry_maker = function(j)
+        return { value = j, display = j.cmd, ordinal = j.cmd }
+      end,
+    }),
+    sorter  = conf.values.generic_sorter({}),
+    previewer = previewer,
+    attach_mappings = function(prompt_bufnr)
+      actions.select_default:replace(function()
+        local sel = act_state.get_selected_entry()
+        actions.close(prompt_bufnr)
+        if not sel then return end
+        local j = sel.value
+        pcall(vim.fn.jobstop, j.job_id)
+        if j.job_id == S.job_id then
+          S.job_id  = nil
+          S.term_buf = nil
+        end
+        vim.notify("[SolnExplorer] Stopped: " .. j.cmd, vim.log.levels.INFO)
+      end)
+      return true
+    end,
+  }):find()
+end
+
 -- Allow test_runner.lua to share its log buffer with gx
 function M._set_term_buf(buf)
   S.term_buf = buf
