@@ -499,18 +499,34 @@ return {
     opts         = {},
   },
 
+  -- ── nvim-notify: top-right notifications ─────────────────────────────────
+  {
+    "rcarriga/nvim-notify",
+    lazy = false,
+    opts = {
+      position    = "top_right",
+      timeout     = 3000,
+      max_width   = 60,
+      render      = "compact",
+      top_down    = true,
+    },
+    config = function(_, opts)
+      local notify = require("notify")
+      notify.setup(opts)
+      vim.notify = notify
+    end,
+  },
+
   -- ── noice.nvim: command line, notifications, LSP progress UI ─────────────
   {
     "folke/noice.nvim",
     event        = "VeryLazy",
-    dependencies = { "MunifTanjim/nui.nvim" },
+    dependencies = { "MunifTanjim/nui.nvim", "rcarriga/nvim-notify" },
     opts = {
-      -- leave cmdline and popupmenu alone (NvChad handles those)
       cmdline   = { enabled = false },
       popupmenu = { enabled = false },
       messages  = { enabled = false },
-      -- only take over notifications
-      notify = { enabled = true },
+      notify    = { enabled = true, view = "notify" },
       lsp = {
         progress    = { enabled = true },
         hover       = { enabled = false },
@@ -523,16 +539,8 @@ return {
         },
       },
       routes = {
-        -- swallow "written" messages
         { filter = { event = "msg_show", find = "written" }, opts = { skip = true } },
-        -- swallow search count noise
         { filter = { event = "msg_show", find = "^/" },      opts = { skip = true } },
-      },
-      views = {
-        notify = {
-          border = { style = "rounded" },
-          position = { row = 2, col = "100%" },
-        },
       },
     },
   },
