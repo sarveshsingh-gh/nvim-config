@@ -681,18 +681,80 @@ local function action_remove_nuget_or_ref(_)
   if pv then coroutine.wrap(pv.open_or_toggle)() end
 end
 
-local function action_new_item(proj_node)
-  local new = get_dotnet("actions.new")
-  if new then
-    coroutine.wrap(function()
-      new.create_new_item(proj_node.dir, function(file_path)
-        refresh()
-        if file_path and vim.fn.filereadable(file_path) == 1 then
-          action_open_file({ path = file_path, kind = "file" })
-        end
+local NEW_ITEM_TEMPLATES = {
+  { value = "class",          display = "Class",                      ext = ".cs"     },
+  { value = "interface",      display = "Interface",                  ext = ".cs"     },
+  { value = "record",         display = "Record",                     ext = ".cs"     },
+  { value = "struct",         display = "Struct",                     ext = ".cs"     },
+  { value = "enum",           display = "Enum",                       ext = ".cs"     },
+  { value = "apicontroller",  display = "API Controller",             ext = ".cs"     },
+  { value = "mvccontroller",  display = "MVC Controller",             ext = ".cs"     },
+  { value = "razorcomponent", display = "Razor Component",            ext = ".razor"  },
+  { value = "page",           display = "Razor Page",                 ext = ".cshtml" },
+  { value = "view",           display = "Razor View",                 ext = ".cshtml" },
+  { value = "viewimports",    display = "MVC ViewImports",            ext = ".cshtml" },
+  { value = "viewstart",      display = "MVC ViewStart",              ext = ".cshtml" },
+  { value = "nunit-test",     display = "NUnit 3 Test Item",          ext = ".cs"     },
+  { value = "buildprops",     display = "Directory.Build.props",      predefined = "Directory.Build.props"   },
+  { value = "packagesprops",  display = "Directory.Packages.props",   predefined = "Directory.Packages.props" },
+  { value = "buildtargets",   display = "Directory.Build.targets",    predefined = "Directory.Build.targets" },
+  { value = "gitignore",      display = ".gitignore",                 predefined = ".gitignore"   },
+  { value = "editorconfig",   display = ".editorconfig",              predefined = ".editorconfig" },
+  { value = "globaljson",     display = "global.json",                predefined = "global.json"  },
+  { value = "nugetconfig",    display = "nuget.config",               predefined = "nuget.config" },
+  { value = "webconfig",      display = "web.config",                 predefined = "web.config"   },
+}
+
+local function action_new_item(proj_node, target_dir)
+  local out_dir = target_dir or proj_node.dir
+
+  vim.ui.select(NEW_ITEM_TEMPLATES, {
+    prompt      = "New item (" .. vim.fn.fnamemodify(proj_node.path, ":t:r") .. "):",
+    format_item = function(t) return t.display end,
+  }, function(tpl)
+    if not tpl then return end
+
+    local function run(name)
+      local cmd, file_path
+      if tpl.predefined then
+        cmd       = { "dotnet", "new", tpl.value, "-o", out_dir }
+        file_path = out_dir .. "/" .. tpl.predefined
+      else
+        cmd       = { "dotnet", "new", tpl.value, "-o", out_dir, "-n", name }
+        file_path = out_dir .. "/" .. name .. tpl.ext
+      end
+
+      local stderr = {}
+      vim.fn.jobstart(cmd, {
+        cwd       = proj_node.dir,   -- cwd = project dir so dotnet finds the .csproj
+        on_stderr = function(_, data)
+          for _, l in ipairs(data) do
+            if l ~= "" then table.insert(stderr, l) end
+          end
+        end,
+        on_exit = function(_, code)
+          vim.schedule(function()
+            if code ~= 0 then
+              vim.notify("[SolnExplorer] dotnet new failed:\n" .. table.concat(stderr, "\n"), vim.log.levels.ERROR)
+              return
+            end
+            refresh()
+            if vim.fn.filereadable(file_path) == 1 then
+              action_open_file({ path = file_path, kind = "file" })
+            end
+          end)
+        end,
+      })
+    end
+
+    if tpl.predefined then
+      run(nil)
+    else
+      vim.ui.input({ prompt = "Name (no extension): " }, function(name)
+        if name and name ~= "" then run(name) end
       end)
-    end)()
-  end
+    end
+  end)
 end
 
 local function action_build_project(proj_node)
@@ -947,7 +1009,11 @@ local DISPATCH = {
     elseif node.kind == "project"  then action_new_item(node)
     else
       local proj = nearest_project(row)
-      if proj then action_new_item(proj) end
+      if proj then
+        local target = node.kind == "dir" and node.path
+                    or (node.path and vim.fn.fnamemodify(node.path, ":h"))
+        action_new_item(proj, target)
+      end
     end
   end,
   ["B"] = function(node, row)
