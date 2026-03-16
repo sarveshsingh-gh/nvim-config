@@ -684,8 +684,14 @@ end
 local function action_new_item(proj_node)
   local new = get_dotnet("actions.new")
   if new then
-    coroutine.wrap(function() new.create_new_item(proj_node.dir) end)()
-    vim.defer_fn(refresh, 800)
+    coroutine.wrap(function()
+      new.create_new_item(proj_node.dir, function(file_path)
+        refresh()
+        if file_path and vim.fn.filereadable(file_path) == 1 then
+          action_open_file({ path = file_path, kind = "file" })
+        end
+      end)
+    end)()
   end
 end
 
