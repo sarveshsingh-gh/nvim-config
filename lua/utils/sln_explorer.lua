@@ -722,8 +722,13 @@ local function action_new_item(proj_node, target_dir)
         cmd       = { "dotnet", "new", tpl.value, "-o", out_dir }
         file_path = out_dir .. "/" .. tpl.predefined
       else
-        cmd       = { "dotnet", "new", tpl.value, "-o", out_dir, "-n", name }
-        file_path = out_dir .. "/" .. name .. tpl.ext
+        -- allow "sub/path/ClassName" → creates in out_dir/sub/path/
+        local sub  = name:match("^(.+)/[^/]+$")  -- everything before last /
+        local base = name:match("([^/]+)$")       -- just the class name
+        local dest = sub and (out_dir .. "/" .. sub) or out_dir
+        vim.fn.mkdir(dest, "p")
+        cmd       = { "dotnet", "new", tpl.value, "-o", dest, "-n", base }
+        file_path = dest .. "/" .. base .. tpl.ext
       end
 
       local stderr = {}
@@ -752,7 +757,7 @@ local function action_new_item(proj_node, target_dir)
     if tpl.predefined then
       run(nil)
     else
-      vim.ui.input({ prompt = "Name (no extension): " }, function(name)
+      vim.ui.input({ prompt = "Name (e.g. MyClass or Sub/Folder/MyClass): " }, function(name)
         if name and name ~= "" then run(name) end
       end)
     end
