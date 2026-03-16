@@ -1138,12 +1138,22 @@ local function open_win()
     -- Use the same hl group as the folder icon (_FO_HL set by build_nodes via mini.icons)
     -- This guarantees separator, project text, and folder text all match the folder icon exactly.
     if _FO_HL then
-      vim.api.nvim_set_hl(0, "SlnProject",     { link = _FO_HL })
-      vim.api.nvim_set_hl(0, "SlnFolder",      { link = _FO_HL })
-      vim.api.nvim_set_hl(0, "SlnExplorerSep", { link = _FO_HL })
+      vim.api.nvim_set_hl(0, "SlnProject", { link = _FO_HL })
+      vim.api.nvim_set_hl(0, "SlnFolder",  { link = _FO_HL })
     end
     local fb  = vim.api.nvim_get_hl(0, { name = "FloatBorder", link = false })
     local fg  = (_FO_HL and vim.api.nvim_get_hl(0, { name = _FO_HL }).fg) or fb.fg or 0x3e4452
+    -- Dim the WinSeparator: blend fg 30% toward bg
+    do
+      local nt   = vim.api.nvim_get_hl(0, { name = "NvimTreeNormal", link = false })
+      local norm = vim.api.nvim_get_hl(0, { name = "Normal",         link = false })
+      local sbg  = nt.bg or norm.bg or 0x1e2127
+      local mix  = function(a, b, t) return math.floor(a * t + b * (1 - t)) end
+      local sr   = mix(math.floor(fg / 65536) % 256, math.floor(sbg / 65536) % 256, 0.30)
+      local sg   = mix(math.floor(fg / 256)   % 256, math.floor(sbg / 256)   % 256, 0.30)
+      local sb   = mix(fg % 256,                      sbg % 256,                     0.30)
+      vim.api.nvim_set_hl(0, "SlnExplorerSep", { fg = sr * 65536 + sg * 256 + sb })
+    end
 
     -- Tabline blank area: same bg as the explorer panel (NvimTreeNormal → Normal fallback)
     local nt = vim.api.nvim_get_hl(0, { name = "NvimTreeNormal", link = false })
