@@ -1,5 +1,4 @@
--- DAP signs only — adapter + C# config are registered by easy-dotnet
--- automatically via debugger.auto_register_dap = true (see configs/dotnet.lua)
+-- DAP signs only — adapter + C# config are registered by dotnet.nvim
 local dap = require "dap"
 
 -- ── Signs ─────────────────────────────────────────────────────────────────────

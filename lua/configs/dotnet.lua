@@ -1,46 +1,55 @@
--- easy-dotnet.nvim configuration.
--- Full option reference: https://github.com/GustavEikaas/easy-dotnet.nvim
-require("easy-dotnet").setup({
-  -- Let easy-dotnet register the DAP adapter + config automatically.
-  -- Uses prepare_debugger() which builds the project, picks a launch
-  -- profile, starts netcoredbg, and returns the port for DAP to attach.
-  debugger = {
-    auto_register_dap = true,
-    console           = "integratedTerminal",
-  },
+-- ── :DotnetLaunchSettings — scaffold Properties/launchSettings.json ─────────
+vim.api.nvim_create_user_command("DotnetLaunchSettings", function()
+  require("dotnet.ui.picker").runnable({ prompt = "Add launchSettings.json to:" }, function(csproj)
+    if not csproj then return end
 
-  -- Auto-insert file-scoped namespace when creating new .cs files
-  auto_bootstrap_namespace = {
-    type    = "file_scoped",   -- "file_scoped" | "block_scoped"
-    enabled = true,
-  },
+    local project_dir  = vim.fn.fnamemodify(csproj, ":h")
+    local project_name = vim.fn.fnamemodify(csproj, ":t:r")
+    local props_dir    = project_dir .. "/Properties"
+    local target       = props_dir .. "/launchSettings.json"
 
-  -- Extra keymaps on .csproj buffer (add/remove refs, packages, etc.)
-  csproj_mappings = true,
+    if vim.fn.filereadable(target) == 1 then
+      vim.notify("launchSettings.json already exists — opening it.", vim.log.levels.INFO)
+      vim.cmd("edit " .. vim.fn.fnameescape(target))
+      return
+    end
 
-  -- Test runner
-  test_runner = {
-    viewmode                     = "split",   -- "split" | "vsplit" | "float" | "buf"
-    enable_buffer_test_execution = true,
-    noBuild                      = false,
-    icons = {
-      passed  = "",
-      skipped = "",
-      failed  = "",
-      success = "",
-      reload  = "",
-      test    = "",
-      sln     = "󰘐",
-      project = "󰘐",
-      dir     = "",
-      package = "",
+    vim.fn.mkdir(props_dir, "p")
+
+    local template = string.format([[{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "%s": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "https://localhost:7000;http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
     },
-    mappings = {
-      run_test_from_buffer = { lhs = "r",           desc = "Run test under cursor" },
-      filter_failed_tests  = { lhs = "<leader>tf", desc = "Filter failed tests" },
-      debug_test           = { lhs = "<leader>td", desc = "Debug test" },
-      go_to_file           = { lhs = "gf",         desc = "Go to test file" },
-      run_all              = { lhs = "<leader>ta", desc = "Run all tests" },
-    },
-  },
-})
+    "IIS Express": {
+      "commandName": "IISExpress",
+      "launchBrowser": true,
+      "launchUrl": "",
+      "applicationUrl": "https://localhost:44300;http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
+]], project_name)
+
+    local f = io.open(target, "w")
+    if not f then
+      vim.notify("Failed to write " .. target, vim.log.levels.ERROR)
+      return
+    end
+    f:write(template)
+    f:close()
+
+    vim.notify("Created " .. target, vim.log.levels.INFO)
+    vim.cmd("edit " .. vim.fn.fnameescape(target))
+  end)
+end, { desc = "Scaffold Properties/launchSettings.json for nearest .csproj" })
