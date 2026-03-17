@@ -437,7 +437,19 @@ return {
       "nvim-neotest/nvim-nio",
     },
     config = function()
-      require("dotnet").setup()
+      local is_windows = vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1
+      local mason_bin  = is_windows
+        and vim.fn.expand("~/AppData/Local/nvim-data/mason/bin/netcoredbg.cmd")
+        or  vim.fn.expand("~/.local/share/nvim/mason/bin/netcoredbg")
+
+      require("dotnet").setup({
+        dap = {
+          netcoredbg_paths = {
+            mason_bin,
+            vim.fn.exepath("netcoredbg"),
+          },
+        },
+      })
     end,
   },
 
