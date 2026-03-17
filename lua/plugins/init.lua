@@ -439,7 +439,7 @@ return {
     config = function()
       local is_windows = vim.fn.has("win32") == 1 or vim.fn.has("win64") == 1
       local mason_bin  = is_windows
-        and vim.fn.expand("~/AppData/Local/nvim-data/mason/bin/netcoredbg.cmd")
+        and vim.fn.expand("~/AppData/Local/nvim-data/mason/packages/netcoredbg/netcoredbg/netcoredbg.exe")
         or  vim.fn.expand("~/.local/share/nvim/mason/bin/netcoredbg")
 
       require("dotnet").setup({
