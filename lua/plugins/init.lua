@@ -230,6 +230,7 @@ return {
       ensure_installed = {
         "c_sharp", "xml", "json", "toml",
         "regex", "bash", "markdown", "markdown_inline",
+        "dockerfile", "yaml",
       },
     },
   },
@@ -260,8 +261,11 @@ return {
       }
       opts.ensure_installed = opts.ensure_installed or {}
       vim.list_extend(opts.ensure_installed, {
-        "roslyn",       -- C# LSP (Microsoft Roslyn language server)
-        "netcoredbg",   -- .NET DAP adapter
+        "roslyn",                          -- C# LSP
+        "netcoredbg",                      -- .NET DAP adapter
+        "bicep-lsp",                       -- Azure Bicep / ARM
+        "dockerfile-language-server",      -- Dockerfile
+        "docker-compose-language-service", -- docker-compose.yml
       })
     end,
   },

@@ -25,7 +25,10 @@ vim.lsp.config("roslyn", {})
 -- ── Other language servers ────────────────────────────────────────────────
 -- Add non-C# servers here (NvChad's mason-lspconfig will auto-install them)
 local servers = {
-  "marksman",   -- markdown LSP (link completion, heading navigation)
+  "marksman",        -- markdown LSP (link completion, heading navigation)
+  "bicep",           -- Azure Bicep / ARM templates
+  "dockerls",        -- Dockerfile
+  "docker_compose_language_service", -- docker-compose.yml
 }
 
 if #servers > 0 then
