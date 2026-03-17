@@ -231,6 +231,7 @@ return {
         "c_sharp", "xml", "json", "toml",
         "regex", "bash", "markdown", "markdown_inline",
         "dockerfile", "yaml",
+        "html", "css", "javascript", "typescript", "sql",
       },
     },
   },
@@ -266,6 +267,10 @@ return {
         "bicep-lsp",                       -- Azure Bicep / ARM
         "dockerfile-language-server",      -- Dockerfile
         "docker-compose-language-service", -- docker-compose.yml
+        "html-lsp",                        -- HTML
+        "css-lsp",                         -- CSS
+        "typescript-language-server",      -- TypeScript / JavaScript
+        "sqlls",                           -- SQL
       })
     end,
   },
