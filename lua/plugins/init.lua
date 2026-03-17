@@ -544,6 +544,22 @@ return {
     },
   },
 
+  -- ── vim-be-good: Vim motion practice games ───────────────────────────────
+  {
+    "ThePrimeagen/vim-be-good",
+    cmd = "VimBeGood",
+  },
+
+  -- ── harpoon: quick file bookmarks ────────────────────────────────────────
+  {
+    "ThePrimeagen/harpoon",
+    branch       = "harpoon2",
+    dependencies = { "nvim-lua/plenary.nvim" },
+    config = function()
+      require("harpoon"):setup()
+    end,
+  },
+
   -- ── nvim-spectre: project-wide find & replace ─────────────────────────────
   {
     "nvim-pack/nvim-spectre",

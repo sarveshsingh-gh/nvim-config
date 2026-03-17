@@ -182,6 +182,14 @@ map("v", "<leader>ce", "<cmd>CopilotChatExplain<cr>", { desc = "Copilot explain 
 map("n", "<leader>ct", "<cmd>CopilotChatTests<cr>",   { desc = "Copilot generate tests" })
 map("n", "<leader>cr", "<cmd>CopilotChatReview<cr>",  { desc = "Copilot review" })
 
+-- ── Harpoon ──────────────────────────────────────────────────────────────────
+map("n", "<leader>ha", function() require("harpoon"):list():add() end,                                { desc = "Harpoon add file" })
+map("n", "<leader>hh", function() local h = require("harpoon") h.ui:toggle_quick_menu(h:list()) end, { desc = "Harpoon menu" })
+map("n", "<leader>1",  function() require("harpoon"):list():select(1) end,                            { desc = "Harpoon file 1" })
+map("n", "<leader>2",  function() require("harpoon"):list():select(2) end,                            { desc = "Harpoon file 2" })
+map("n", "<leader>3",  function() require("harpoon"):list():select(3) end,                            { desc = "Harpoon file 3" })
+map("n", "<leader>4",  function() require("harpoon"):list():select(4) end,                            { desc = "Harpoon file 4" })
+
 -- ── Search / Replace (Spectre) ───────────────────────────────────────────────
 map("n", "<leader>sr", function() require("spectre").toggle() end,                          { desc = "Search toggle spectre" })
 map("n", "<leader>sw", function() require("spectre").open_visual({ select_word = true }) end, { desc = "Search current word" })
