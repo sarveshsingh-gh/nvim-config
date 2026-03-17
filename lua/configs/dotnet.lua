@@ -1,5 +1,5 @@
 -- ── :DotnetLaunchSettings — scaffold Properties/launchSettings.json ─────────
-vim.api.nvim_create_user_command("DotnetLaunchSettings", function()
+local function launch_settings()
   require("dotnet.ui.picker").runnable({ prompt = "Add launchSettings.json to:" }, function(csproj)
     if not csproj then return end
 
@@ -52,4 +52,15 @@ vim.api.nvim_create_user_command("DotnetLaunchSettings", function()
     vim.notify("Created " .. target, vim.log.levels.INFO)
     vim.cmd("edit " .. vim.fn.fnameescape(target))
   end)
-end, { desc = "Scaffold Properties/launchSettings.json for nearest .csproj" })
+end
+
+require("dotnet.commands").register("file.launch_settings", {
+  desc     = "Add launchSettings.json",
+  category = "file",
+  icon     = "",
+  run      = launch_settings,
+})
+
+vim.api.nvim_create_user_command("DotnetLaunchSettings",
+  launch_settings,
+  { desc = "Scaffold Properties/launchSettings.json for nearest .csproj" })
