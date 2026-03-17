@@ -156,6 +156,9 @@ end, { desc = "Debug breakpoints quickfix" })
 map("n", "<leader>dbc", function() require("dap").clear_breakpoints() end,
   { desc = "Debug breakpoints clear" })
 
+-- ── Treesitter toggle (for slow machines) ────────────────────────────────────
+map("n", "<leader>uT", "<cmd>TSBufToggle highlight<cr>", { desc = "Toggle treesitter highlight" })
+
 -- ── Launch settings scaffold ─────────────────────────────────────────────────
 map("n", "<leader>nL", "<cmd>DotnetLaunchSettings<cr>", { desc = "Dotnet launchSettings.json" })
 
