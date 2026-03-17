@@ -506,6 +506,44 @@ return {
 
 
 
+  -- ── Copilot: inline suggestions ──────────────────────────────────────────
+  {
+    "zbirenbaum/copilot.lua",
+    event = "InsertEnter",
+    opts  = {
+      suggestion = {
+        enabled    = true,
+        auto_trigger = true,
+        keymap = {
+          accept        = "<Tab>",
+          accept_word   = "<C-Right>",
+          accept_line   = "<C-Down>",
+          next          = "<M-]>",
+          prev          = "<M-[>",
+          dismiss       = "<C-e>",
+        },
+      },
+      panel = { enabled = false },
+      filetypes = {
+        ["*"] = true,
+      },
+    },
+  },
+
+  -- ── CopilotChat: agent mode / chat ───────────────────────────────────────
+  {
+    "CopilotC-Nvim/CopilotChat.nvim",
+    event        = "VeryLazy",
+    dependencies = {
+      "zbirenbaum/copilot.lua",
+      "nvim-lua/plenary.nvim",
+    },
+    opts = {
+      model  = "gpt-4o",
+      window = { layout = "vertical", width = 0.35 },
+    },
+  },
+
   -- ── nvim-spectre: project-wide find & replace ─────────────────────────────
   {
     "nvim-pack/nvim-spectre",

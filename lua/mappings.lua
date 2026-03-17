@@ -173,6 +173,15 @@ map("n", "gx", function() require("dotnet.telescope.jobs").open() end,
   { desc = "Dotnet job log" })
 
 
+-- ── Copilot Chat ─────────────────────────────────────────────────────────────
+map("n", "<leader>cc", "<cmd>CopilotChatToggle<cr>",  { desc = "Copilot chat toggle" })
+map("n", "<leader>ce", "<cmd>CopilotChatExplain<cr>", { desc = "Copilot explain" })
+map("n", "<leader>cx2", "<cmd>CopilotChatFix<cr>",     { desc = "Copilot fix" })
+map("v", "<leader>cc", "<cmd>CopilotChatToggle<cr>",  { desc = "Copilot chat selection" })
+map("v", "<leader>ce", "<cmd>CopilotChatExplain<cr>", { desc = "Copilot explain selection" })
+map("n", "<leader>ct", "<cmd>CopilotChatTests<cr>",   { desc = "Copilot generate tests" })
+map("n", "<leader>cr", "<cmd>CopilotChatReview<cr>",  { desc = "Copilot review" })
+
 -- ── Search / Replace (Spectre) ───────────────────────────────────────────────
 map("n", "<leader>sr", function() require("spectre").toggle() end,                          { desc = "Search toggle spectre" })
 map("n", "<leader>sw", function() require("spectre").open_visual({ select_word = true }) end, { desc = "Search current word" })
