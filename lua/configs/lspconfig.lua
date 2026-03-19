@@ -27,6 +27,7 @@ vim.lsp.config("roslyn", {})
 local servers = {
   "marksman",                        -- markdown
   "bicep",                           -- Azure Bicep / ARM templates
+  "lemminx",                         -- XML / .csproj / .props / .targets
   "dockerls",                        -- Dockerfile
   "docker_compose_language_service", -- docker-compose.yml
   "html",                            -- HTML
