@@ -265,6 +265,7 @@ return {
         "roslyn",                          -- C# LSP
         "netcoredbg",                      -- .NET DAP adapter
         "bicep-lsp",                       -- Azure Bicep / ARM
+        "lemminx",                         -- XML LSP (.csproj / .props / .targets)
         "dockerfile-language-server",      -- Dockerfile
         "docker-compose-language-service", -- docker-compose.yml
         "html-lsp",                        -- HTML
@@ -370,6 +371,8 @@ return {
 
       dap.listeners.after.event_initialized["dapui_config"] = function()
         _dap_tab = 1
+        -- Tell nvim-dap to reuse existing windows when jumping to source files
+        vim.o.switchbuf = "useopen,usetab"
         dapui.open({ layout = 1 })
         vim.schedule(function()
           apply_dap_winbars()
@@ -398,8 +401,8 @@ return {
         end)
       end
 
-      dap.listeners.before.event_terminated["dapui_config"] = function() dapui.close() end
-      dap.listeners.before.event_exited["dapui_config"]     = function() dapui.close() end
+      dap.listeners.before.event_terminated["dapui_config"] = function() dapui.close(); vim.o.switchbuf = "" end
+      dap.listeners.before.event_exited["dapui_config"]     = function() dapui.close(); vim.o.switchbuf = "" end
     end,
   },
 
@@ -587,11 +590,12 @@ return {
     "rcarriga/nvim-notify",
     lazy = false,
     opts = {
-      position    = "top_right",
-      timeout     = 3000,
-      max_width   = 60,
-      render      = "compact",
-      top_down    = true,
+      position         = "top_right",
+      timeout          = 3000,
+      max_width        = 60,
+      render           = "compact",
+      top_down         = true,
+      background_colour = "#000000",
     },
     config = function(_, opts)
       local notify = require("notify")

@@ -2,6 +2,15 @@ require "nvchad.mappings"
 
 local map = vim.keymap.set
 
+-- Guard NvChad's tab cycle against empty vim.t.bufs (crashes on dashboard)
+local function safe_tab(dir)
+  local bufs = vim.t.bufs
+  if not bufs or #bufs == 0 then return end
+  require("nvchad.tabufline")[dir]()
+end
+map("n", "<tab>",   function() safe_tab("next") end, { desc = "Buffer next" })
+map("n", "<S-tab>", function() safe_tab("prev") end, { desc = "Buffer prev" })
+
 -- All which-key registrations live in lua/plugins/init.lua (spec field).
 -- mappings.lua is keymaps only.
 -- desc format: "Group detail" — first word = cheatsheet group header.
@@ -171,6 +180,28 @@ map("n", "<leader>uT", "<cmd>TSBufToggle highlight<cr>", { desc = "Toggle treesi
 -- gx is a global shortcut to the jobs/log picker (running + completed).
 map("n", "gx", function() require("dotnet.telescope.jobs").open() end,
   { desc = "Dotnet job log" })
+
+-- Toggle all terminal windows (hide when debugging, show when needed)
+map("n", "<M-t>", function()
+  local term_wins = vim.tbl_filter(function(w)
+    return vim.bo[vim.api.nvim_win_get_buf(w)].buftype == "terminal"
+  end, vim.api.nvim_tabpage_list_wins(0))
+
+  if #term_wins > 0 then
+    for _, w in ipairs(term_wins) do pcall(vim.api.nvim_win_hide, w) end
+  else
+    -- Reopen the most recently used terminal buffer in a split
+    local term_bufs = vim.tbl_filter(function(b)
+      return vim.api.nvim_buf_is_loaded(b) and vim.bo[b].buftype == "terminal"
+    end, vim.api.nvim_list_bufs())
+    if #term_bufs > 0 then
+      table.sort(term_bufs, function(a, b) return vim.fn.getbufinfo(a)[1].lastused > vim.fn.getbufinfo(b)[1].lastused end)
+      vim.cmd("bo sp")
+      vim.api.nvim_win_set_buf(0, term_bufs[1])
+      vim.api.nvim_win_set_height(0, math.floor(vim.o.lines * 0.35))
+    end
+  end
+end, { desc = "Terminal toggle visibility" })
 
 
 -- ── Copilot Chat ─────────────────────────────────────────────────────────────
