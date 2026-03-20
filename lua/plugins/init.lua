@@ -487,6 +487,7 @@ return {
   -- ── zoxide: telescope picker for frecency-ranked directories ─────────────
   {
     "jvgrootveld/telescope-zoxide",
+    cmd = { "Z" },
     keys = { { "<leader>fz", "<cmd>Telescope zoxide list<cr>", desc = "Zoxide dirs" } },
     dependencies = {
       "nvim-telescope/telescope.nvim",
@@ -494,6 +495,20 @@ return {
     },
     config = function()
       require("telescope").load_extension "zoxide"
+      vim.api.nvim_create_user_command("Z", function(opts)
+        if opts.args == "" then
+          require("telescope").extensions.zoxide.list()
+        else
+          local result = vim.fn.system("zoxide query " .. vim.fn.shellescape(opts.args))
+          local path = vim.trim(result)
+          if vim.fn.isdirectory(path) == 1 then
+            vim.cmd("cd " .. vim.fn.fnameescape(path))
+            vim.notify("cd " .. path)
+          else
+            vim.notify("zoxide: no match for " .. opts.args, vim.log.levels.WARN)
+          end
+        end
+      end, { nargs = "?", desc = "Zoxide cd" })
     end,
   },
 
