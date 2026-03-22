@@ -39,11 +39,6 @@ map("n", "<C-u>", "<C-u>zz")
 map("n", "n",     "nzzzv")
 map("n", "N",     "Nzzzv")
 
--- ── Remove redundant terminal splits (keep only <A-i> floating) ──────────────
-pcall(vim.keymap.del, "n", "<A-h>")
-pcall(vim.keymap.del, "n", "<A-v>")
-pcall(vim.keymap.del, "t", "<A-h>")
-pcall(vim.keymap.del, "t", "<A-v>")
 
 -- ── Line number toggles (free up <leader>n for dotnet) ───────────────────────
 pcall(vim.keymap.del, "n", "<leader>n")
