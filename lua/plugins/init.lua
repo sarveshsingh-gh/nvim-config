@@ -76,6 +76,82 @@ return {
     },
   },
 
+  -- ── nvim-notify: beautiful notification popups ───────────────────────────
+  {
+    "rcarriga/nvim-notify",
+    event = "VeryLazy",
+    opts  = {
+      render          = "wrapped-compact",
+      stages          = "slide",
+      timeout         = 3000,
+      max_width       = 60,
+      icons = {
+        ERROR = " ",
+        WARN  = " ",
+        INFO  = " ",
+        DEBUG = " ",
+        TRACE = "✎ ",
+      },
+    },
+    config = function(_, opts)
+      local notify = require("notify")
+      notify.setup(opts)
+      vim.notify = notify
+    end,
+  },
+
+  -- ── noice.nvim: beautiful cmdline, popupmenu, LSP progress ───────────────
+  {
+    "folke/noice.nvim",
+    event        = "VeryLazy",
+    dependencies = { "MunifTanjim/nui.nvim", "rcarriga/nvim-notify" },
+    opts = {
+      cmdline = {
+        enabled = true,
+        view    = "cmdline_popup",
+        format  = {
+          cmdline   = { icon = ">" },
+          search_down = { icon = " " },
+          search_up   = { icon = " " },
+          filter      = { icon = "$" },
+          lua         = { icon = "" },
+          help        = { icon = "?" },
+        },
+      },
+      messages = {
+        enabled      = true,
+        view         = "notify",
+        view_error   = "notify",
+        view_warn    = "notify",
+        view_history = "messages",
+      },
+      popupmenu = {
+        enabled  = true,
+        backend  = "nui",
+      },
+      lsp = {
+        progress = {
+          enabled = true,
+          view    = "mini",
+        },
+        hover          = { enabled = false },  -- use Neovim's built-in K
+        signature      = { enabled = false },  -- use blink.cmp signature
+        message        = { enabled = true },
+      },
+      presets = {
+        bottom_search         = true,   -- classic bottom search bar
+        command_palette       = true,   -- cmdline popup centered with autocomplete
+        long_message_to_split = true,   -- long messages go to split
+        inc_rename            = false,
+      },
+      routes = {
+        -- send "written" messages to mini (bottom right, no popup)
+        { filter = { event = "msg_show", find = "written" },   opts = { skip = true } },
+        { filter = { event = "msg_show", find = "%d+L, %d+B" }, opts = { skip = true } },
+      },
+    },
+  },
+
   -- ── blink.cmp: faster completion (replaces nvim-cmp) ─────────────────────
   { import = "nvchad.blink.lazyspec" },
 
