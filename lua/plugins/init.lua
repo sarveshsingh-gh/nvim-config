@@ -10,6 +10,24 @@ return {
     end,
   },
 
+  -- ── blink.cmp: HTTP header completions for .http / .rest files ───────────
+  {
+    "saghen/blink.cmp",
+    opts = function(_, opts)
+      opts.sources = opts.sources or {}
+      opts.sources.providers = opts.sources.providers or {}
+      -- Register http headers source
+      opts.sources.providers.http_headers = {
+        name   = "HTTP Headers",
+        module = "configs.http_blink_source",
+      }
+      -- Enable it only for http/rest files
+      opts.sources.per_filetype = opts.sources.per_filetype or {}
+      opts.sources.per_filetype.http = { "http_headers", "luasnip", "snippets" }
+      return opts
+    end,
+  },
+
   -- ── Mason: auto-install csharpier ────────────────────────────────────────
   {
     "williamboman/mason.nvim",
