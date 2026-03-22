@@ -2,245 +2,178 @@ require "nvchad.mappings"
 
 local map = vim.keymap.set
 
--- Guard NvChad's tab cycle against empty vim.t.bufs (crashes on dashboard)
+-- ── Buffer navigation ────────────────────────────────────────────────────────
 local function safe_tab(dir)
-  local bufs = vim.t.bufs
-  if not bufs or #bufs == 0 then return end
-  require("nvchad.tabufline")[dir]()
+  local bufs = vim.tbl_filter(function(b)
+    return vim.bo[b].buflisted
+  end, vim.api.nvim_list_bufs())
+  if #bufs < 2 then return end
+  if dir == "next" then vim.cmd "bnext"
+  else vim.cmd "bprev" end
 end
 map("n", "<tab>",   function() safe_tab("next") end, { desc = "Buffer next" })
 map("n", "<S-tab>", function() safe_tab("prev") end, { desc = "Buffer prev" })
 
--- All which-key registrations live in lua/plugins/init.lua (spec field).
--- mappings.lua is keymaps only.
--- desc format: "Group detail" — first word = cheatsheet group header.
+-- ── General ──────────────────────────────────────────────────────────────────
+map("n", "<leader><leader>", "<cmd>D<cr>",  { desc = "Dotnet palette" })
+map("n", "<M-S-p>",          "<cmd>Dotnet<cr>", { desc = "Dotnet command palette" })
+map("n", "<leader>w", "<cmd>w<cr>",         { desc = "File save" })
+map("n", "<leader>q", "<cmd>q<cr>",         { desc = "File quit" })
 
--- ── Command palette ─────────────────────────────────────────────────────────
-map("n", "<M-S-p>", "<cmd>Dotnet<cr>", { desc = "Dotnet command palette" })
-
--- ── Comment toggle (VS Code style) ──────────────────────────────────────────
+-- ── Comment toggle (VS Code style) ───────────────────────────────────────────
 map({ "n", "v" }, "<C-/>", "gcc", { desc = "Comment toggle", remap = true })
 
 -- ── Keep visual selection when indenting ─────────────────────────────────────
-map("v", "<", "<gv", { desc = "Indent left and reselect" })
-map("v", ">", ">gv", { desc = "Indent right and reselect" })
+map("v", "<", "<gv", { desc = "Indent left" })
+map("v", ">", ">gv", { desc = "Indent right" })
 
--- ── General ─────────────────────────────────────────────────────────────────
-map("i", "jk",        "<ESC>",      { desc = "Escape insert mode" })
-map("n", "<leader><leader>", "<cmd>D<cr>", { desc = "Dotnet palette" })
-map("n", "<leader>w", "<cmd>w<cr>", { desc = "File save" })
-map("n", "<leader>q", "<cmd>q<cr>", { desc = "File quit" })
-map({ "n", "v" }, ";", ":",         { desc = "Editor command mode" })
-
--- Remove NvChad's <leader>n (toggle line number) — conflicts with Dotnet prefix
-pcall(vim.keymap.del, "n", "<leader>n")
-pcall(vim.keymap.del, "n", "<leader>rn")
--- Move line number toggles to <leader>un / <leader>ur
-map("n", "<leader>un", "<cmd>set nu!<cr>",  { desc = "Toggle line numbers" })
-map("n", "<leader>ur", "<cmd>set rnu!<cr>", { desc = "Toggle relative numbers" })
-
--- Searchable keymap list (fuzzy search all keymaps + descriptions)
-map("n", "<leader>fk", "<cmd>Telescope keymaps<cr>", { desc = "Find keymaps" })
-
--- Move selected lines in visual mode
+-- ── Move selected lines ───────────────────────────────────────────────────────
 map("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move selection down" })
 map("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move selection up" })
 
--- Keep cursor centred while scrolling / searching
+-- ── Keep cursor centred ───────────────────────────────────────────────────────
 map("n", "<C-d>", "<C-d>zz")
 map("n", "<C-u>", "<C-u>zz")
 map("n", "n",     "nzzzv")
 map("n", "N",     "Nzzzv")
 
--- ── Quickfix ────────────────────────────────────────────────────────────────
+-- ── Remove redundant terminal splits (keep only <A-i> floating) ──────────────
+pcall(vim.keymap.del, "n", "<A-h>")
+pcall(vim.keymap.del, "n", "<A-v>")
+pcall(vim.keymap.del, "t", "<A-h>")
+pcall(vim.keymap.del, "t", "<A-v>")
+
+-- ── Line number toggles (free up <leader>n for dotnet) ───────────────────────
+pcall(vim.keymap.del, "n", "<leader>n")
+pcall(vim.keymap.del, "n", "<leader>rn")
+map("n", "<leader>un", "<cmd>set nu!<cr>",  { desc = "Toggle line numbers" })
+map("n", "<leader>ur", "<cmd>set rnu!<cr>", { desc = "Toggle relative numbers" })
+
+-- ── Quickfix ─────────────────────────────────────────────────────────────────
 map("n", "<leader>xo", "<cmd>copen<cr>",  { desc = "Quickfix open" })
 map("n", "<leader>xc", "<cmd>cclose<cr>", { desc = "Quickfix close" })
 map("n", "]q",         "<cmd>cnext<cr>",  { desc = "Quickfix next" })
 map("n", "[q",         "<cmd>cprev<cr>",  { desc = "Quickfix prev" })
 
--- ── Oil (file manager) ───────────────────────────────────────────────────────
-map("n", "-", "<cmd>Oil<cr>", { desc = "File open parent" })
+-- ── Find ─────────────────────────────────────────────────────────────────────
+map("n", "<leader>fk", "<cmd>Telescope keymaps<cr>",    { desc = "Find keymaps" })
+map("n", "<leader>fs", function() require("telescope.builtin").lsp_document_symbols() end,  { desc = "Find document symbols" })
+map("n", "<leader>fS", function() require("telescope.builtin").lsp_workspace_symbols() end, { desc = "Find workspace symbols" })
 
--- ── Zoxide ──────────────────────────────────────────────────────────────────
-map("n", "<leader>fz", "<cmd>Telescope zoxide list<cr>", { desc = "Find zoxide dirs" })
-
--- ── LSP — Standard bindings (Neovim 0.11+ gr* style) ───────────────────────
-map("n",          "grn", vim.lsp.buf.rename,        { desc = "Lsp rename" })
-map({ "n", "v" }, "gra", vim.lsp.buf.code_action,   { desc = "Lsp code actions" })
+-- ── LSP — gr* (Neovim 0.11+ style) ──────────────────────────────────────────
+map("n",          "grn", vim.lsp.buf.rename,      { desc = "Lsp rename" })
+map({ "n", "v" }, "gra", vim.lsp.buf.code_action, { desc = "Lsp code actions" })
 map({ "n", "v" }, "grA", function()
   vim.lsp.buf.code_action { context = { only = { "source" }, diagnostics = {} } }
-end,                                                 { desc = "Lsp source actions" })
-map("n", "grd", vim.lsp.buf.definition,              { desc = "Lsp definition" })
-map("n", "grr", function() require("telescope.builtin").lsp_references() end,
-                                                     { desc = "Lsp references" })
-map("n", "gri", vim.lsp.buf.implementation,          { desc = "Lsp implementation" })
-map("n", "grt", vim.lsp.buf.type_definition,         { desc = "Lsp type definition" })
-map("n", "K",   vim.lsp.buf.hover,                   { desc = "Lsp hover" })
-map("i", "<C-k>", vim.lsp.buf.signature_help,        { desc = "Lsp signature help" })
-map("n", "gO",  function() require("telescope.builtin").lsp_document_symbols() end,
-                                                     { desc = "Lsp document symbols" })
-map("n", "grq", function() vim.diagnostic.setqflist() end,
-                                                     { desc = "Lsp diagnostic quickfix" })
+end, { desc = "Lsp source actions" })
+map("n", "grd", vim.lsp.buf.definition,   { desc = "Lsp definition" })
+map("n", "grr", function() require("telescope.builtin").lsp_references() end, { desc = "Lsp references" })
+map("n", "gri", vim.lsp.buf.implementation,  { desc = "Lsp implementation" })
+map("n", "grt", vim.lsp.buf.type_definition, { desc = "Lsp type definition" })
+map("n", "K",   vim.lsp.buf.hover,           { desc = "Lsp hover" })
+map("i", "<C-k>", vim.lsp.buf.signature_help, { desc = "Lsp signature help" })
+map("n", "gO",  function() require("telescope.builtin").lsp_document_symbols() end, { desc = "Lsp document symbols" })
+map("n", "grq", function() vim.diagnostic.setqflist() end, { desc = "Lsp diagnostic quickfix" })
 
--- ── LSP — <leader>l (cheat-sheet: gr* shortcuts) ────────────────────────────
-map("n",          "<leader>ld", vim.lsp.buf.definition,     { desc = "Lsp definition       [grd]" })
-map("n",          "<leader>lr", function() require("telescope.builtin").lsp_references() end,
-                                                            { desc = "Lsp references       [grr]" })
-map("n",          "<leader>li", vim.lsp.buf.implementation, { desc = "Lsp implementation   [gri]" })
-map({ "n", "v" }, "<leader>la", vim.lsp.buf.code_action,    { desc = "Lsp code actions     [gra]" })
+-- ── LSP — <leader>l ──────────────────────────────────────────────────────────
+map("n",          "<leader>ld", vim.lsp.buf.definition,   { desc = "Lsp definition       [grd]" })
+map("n",          "<leader>lr", function() require("telescope.builtin").lsp_references() end, { desc = "Lsp references       [grr]" })
+map("n",          "<leader>li", vim.lsp.buf.implementation,  { desc = "Lsp implementation   [gri]" })
+map({ "n", "v" }, "<leader>la", vim.lsp.buf.code_action,     { desc = "Lsp code actions     [gra]" })
 map("n",          "<leader>lA", function()
   vim.lsp.buf.code_action { context = { only = { "source" }, diagnostics = {} } }
-end,                                                        { desc = "Lsp source actions   [grA]" })
-map("n",          "<leader>ln", vim.lsp.buf.rename,         { desc = "Lsp rename           [grn]" })
-map("n",          "<leader>lh", vim.lsp.buf.hover,          { desc = "Lsp hover            [K]" })
-map("n",          "<leader>ls", vim.lsp.buf.signature_help, { desc = "Lsp signature help   [C-k]" })
-map("n",          "<leader>lt", vim.lsp.buf.type_definition,{ desc = "Lsp type definition  [grt]" })
-map("n",          "<leader>lo", function() require("telescope.builtin").lsp_document_symbols() end,
-                                                            { desc = "Lsp document symbols [gO]" })
+end, { desc = "Lsp source actions   [grA]" })
+map("n", "<leader>ln", vim.lsp.buf.rename,         { desc = "Lsp rename           [grn]" })
+map("n", "<leader>lh", vim.lsp.buf.hover,          { desc = "Lsp hover            [K]" })
+map("n", "<leader>ls", vim.lsp.buf.signature_help, { desc = "Lsp signature help   [C-k]" })
+map("n", "<leader>lt", vim.lsp.buf.type_definition,{ desc = "Lsp type definition  [grt]" })
+map("n", "<leader>lo", function() require("telescope.builtin").lsp_document_symbols() end, { desc = "Lsp document symbols [gO]" })
 
--- ── LSP — Format / extras ───────────────────────────────────────────────────
+-- ── LSP — Format / inlay hints ───────────────────────────────────────────────
 map({ "n", "v" }, "<leader>cf", function()
   require("conform").format({ async = true, lsp_fallback = true })
 end, { desc = "Lsp format" })
 map("n", "<leader>ci", function()
   vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = 0 })
-end, { desc = "Lsp inlay hints" })
+end, { desc = "Lsp inlay hints toggle" })
 
--- ── LSP — Symbols ───────────────────────────────────────────────────────────
-map("n", "<leader>fs", function() require("telescope.builtin").lsp_document_symbols() end,
-  { desc = "Find document symbols" })
-map("n", "<leader>fS", function() require("telescope.builtin").lsp_workspace_symbols() end,
-  { desc = "Find workspace symbols" })
-
--- ── Diagnostic — Navigate ───────────────────────────────────────────────────
-map("n", "<F8>",   function() vim.diagnostic.goto_next() end,                                          { desc = "Diagnostic next" })
-map("n", "<S-F8>", function() vim.diagnostic.goto_prev() end,                                          { desc = "Diagnostic prev" })
-map("n", "]d",     function() vim.diagnostic.goto_next() end,                                          { desc = "Diagnostic next" })
-map("n", "[d",     function() vim.diagnostic.goto_prev() end,                                          { desc = "Diagnostic prev" })
+-- ── Diagnostic ───────────────────────────────────────────────────────────────
+map("n", "<F8>",   function() vim.diagnostic.goto_next() end, { desc = "Diagnostic next" })
+map("n", "<S-F8>", function() vim.diagnostic.goto_prev() end, { desc = "Diagnostic prev" })
+map("n", "]d",     function() vim.diagnostic.goto_next() end, { desc = "Diagnostic next" })
+map("n", "[d",     function() vim.diagnostic.goto_prev() end, { desc = "Diagnostic prev" })
 map("n", "]e",     function() vim.diagnostic.goto_next { severity = vim.diagnostic.severity.ERROR } end, { desc = "Diagnostic next error" })
 map("n", "[e",     function() vim.diagnostic.goto_prev { severity = vim.diagnostic.severity.ERROR } end, { desc = "Diagnostic prev error" })
-
--- ── Diagnostic — Lists ──────────────────────────────────────────────────────
 map("n", "<leader>cd", vim.diagnostic.open_float, { desc = "Diagnostic float" })
-map("n", "<leader>cD", function() require("telescope.builtin").diagnostics { bufnr = 0 } end,
-  { desc = "Diagnostic buffer all" })
+map("n", "<leader>cD", function() require("telescope.builtin").diagnostics { bufnr = 0 } end, { desc = "Diagnostic buffer all" })
 map("n", "<leader>cE", function()
   require("telescope.builtin").diagnostics { bufnr = 0, severity = vim.diagnostic.severity.ERROR }
 end, { desc = "Diagnostic buffer errors" })
 map("n", "<leader>cW", function()
   require("telescope.builtin").diagnostics { bufnr = 0, severity = vim.diagnostic.severity.WARN }
 end, { desc = "Diagnostic buffer warnings" })
-map("n", "<leader>cx", function() require("telescope.builtin").diagnostics() end,
-  { desc = "Diagnostic workspace all" })
+map("n", "<leader>cx", function() require("telescope.builtin").diagnostics() end, { desc = "Diagnostic workspace all" })
 
--- ── Debug — F-key shortcuts (Visual Studio style) ────────────────────────────
-map("n", "<F5>",    function() require("dap").continue() end,         { desc = "Debug continue" })
-map("n", "<S-F5>",  function() require("dap").terminate() end,        { desc = "Debug stop" })
-map("n", "<F9>",    function() require("dap").toggle_breakpoint() end, { desc = "Debug breakpoint toggle" })
-map("n", "<F10>",   function() require("dap").step_over() end,         { desc = "Debug step over" })
-map("n", "<F11>",   function() require("dap").step_into() end,         { desc = "Debug step into" })
-map("n", "<S-F11>", function() require("dap").step_out() end,          { desc = "Debug step out" })
--- VS: Shift+F9 = QuickWatch, Alt+I = Immediate window, Ctrl+Alt+W = Watch
-map({ "n", "v" }, "<S-F9>", function() require("dapui").eval() end,
-  { desc = "Debug QuickWatch (peek value)  [VS: S-F9]" })
-map({ "n", "v" }, "<M-i>",  function() require("dapui").eval(nil, { enter = true }) end,
-  { desc = "Debug add to Watch  [VS: C-A-W]" })
+-- ── Debug — F-keys (Visual Studio style) ─────────────────────────────────────
+map("n", "<F5>",    function() require("dap").continue() end,          { desc = "Debug continue" })
+map("n", "<S-F5>",  function() require("dap").terminate() end,         { desc = "Debug stop" })
+map("n", "<F9>",    function() require("dap").toggle_breakpoint() end,  { desc = "Debug breakpoint toggle" })
+map("n", "<F10>",   function() require("dap").step_over() end,          { desc = "Debug step over" })
+map("n", "<F11>",   function() require("dap").step_into() end,          { desc = "Debug step into" })
+map("n", "<S-F11>", function() require("dap").step_out() end,           { desc = "Debug step out" })
+map({ "n", "v" }, "<S-F9>", function() require("dapui").eval() end,          { desc = "Debug QuickWatch" })
+map({ "n", "v" }, "<M-i>",  function() require("dapui").eval(nil, { enter = true }) end, { desc = "Debug add to Watch" })
 
 -- ── Debug — <leader>d ────────────────────────────────────────────────────────
-map("n", "<leader>dc", function() require("dap").continue() end,      { desc = "Debug continue          [F5]" })
-map("n", "<leader>dx", function() require("dap").terminate() end,     { desc = "Debug stop              [S-F5]" })
-map("n", "<leader>dl", function() require("dap").run_last() end,      { desc = "Debug run last" })
-map("n", "<leader>di", function() require("dap").repl.open() end,     { desc = "Debug Immediate window  [VS: C-A-I]" })
-map("n", "<leader>du", function() require("dapui").toggle() end,      { desc = "Debug ui toggle" })
-map({ "n", "v" }, "<leader>dw", function() require("dapui").eval(nil, { enter = true }) end,
-  { desc = "Debug add to Watch  [M-i]" })
-map({ "n", "v" }, "<leader>dq", function() require("dapui").eval() end,
-  { desc = "Debug QuickWatch    [S-F9]" })
-
--- ── Debug — Breakpoints <leader>db ──────────────────────────────────────────
-map("n", "<leader>dbt", function() require("dap").toggle_breakpoint() end,
-  { desc = "Debug breakpoint toggle    [F9]" })
+map("n", "<leader>dc", function() require("dap").continue() end,   { desc = "Debug continue       [F5]" })
+map("n", "<leader>dx", function() require("dap").terminate() end,  { desc = "Debug stop           [S-F5]" })
+map("n", "<leader>dl", function() require("dap").run_last() end,   { desc = "Debug run last" })
+map("n", "<leader>di", function() require("dap").repl.open() end,  { desc = "Debug REPL / Immediate" })
+map("n", "<leader>du", function() require("dapui").toggle() end,   { desc = "Debug UI toggle" })
+map({ "n", "v" }, "<leader>dw", function() require("dapui").eval(nil, { enter = true }) end, { desc = "Debug add to Watch  [M-i]" })
+map({ "n", "v" }, "<leader>dq", function() require("dapui").eval() end, { desc = "Debug QuickWatch  [S-F9]" })
+map("n", "<leader>dbt", function() require("dap").toggle_breakpoint() end, { desc = "Debug breakpoint toggle    [F9]" })
 map("n", "<leader>dbB", function()
   require("dap").set_breakpoint(vim.fn.input "Condition: ")
 end, { desc = "Debug breakpoint conditional" })
-map("n", "<leader>dbb", function()
-  require("telescope").extensions.dap.list_breakpoints()
-end, { desc = "Debug breakpoints list" })
-map("n", "<leader>dbq", function()
-  require("dap").list_breakpoints() vim.cmd "copen"
-end, { desc = "Debug breakpoints quickfix" })
-map("n", "<leader>dbc", function() require("dap").clear_breakpoints() end,
-  { desc = "Debug breakpoints clear" })
+map("n", "<leader>dbb", function() require("telescope").extensions.dap.list_breakpoints() end, { desc = "Debug breakpoints list" })
+map("n", "<leader>dbq", function() require("dap").list_breakpoints(); vim.cmd "copen" end,     { desc = "Debug breakpoints quickfix" })
+map("n", "<leader>dbc", function() require("dap").clear_breakpoints() end, { desc = "Debug breakpoints clear" })
 
--- ── Treesitter toggle (for slow machines) ────────────────────────────────────
-map("n", "<leader>uT", "<cmd>TSBufToggle highlight<cr>", { desc = "Toggle treesitter highlight" })
-
--- ── dotnet.nvim ─────────────────────────────────────────────────────────────
--- <leader>n* keymaps are set up by dotnet.nvim setup() in keymaps.lua.
--- gx is a global shortcut to the jobs/log picker (running + completed).
-map("n", "gx", function() require("dotnet.telescope.jobs").open() end,
-  { desc = "Dotnet job log" })
-
--- Toggle all terminal windows (hide when debugging, show when needed)
-map("n", "<M-t>", function()
-  local term_wins = vim.tbl_filter(function(w)
-    return vim.bo[vim.api.nvim_win_get_buf(w)].buftype == "terminal"
-  end, vim.api.nvim_tabpage_list_wins(0))
-
-  if #term_wins > 0 then
-    for _, w in ipairs(term_wins) do pcall(vim.api.nvim_win_hide, w) end
-  else
-    -- Reopen the most recently used terminal buffer in a split
-    local term_bufs = vim.tbl_filter(function(b)
-      return vim.api.nvim_buf_is_loaded(b) and vim.bo[b].buftype == "terminal"
-    end, vim.api.nvim_list_bufs())
-    if #term_bufs > 0 then
-      table.sort(term_bufs, function(a, b) return vim.fn.getbufinfo(a)[1].lastused > vim.fn.getbufinfo(b)[1].lastused end)
-      vim.cmd("bo sp")
-      vim.api.nvim_win_set_buf(0, term_bufs[1])
-      vim.api.nvim_win_set_height(0, math.floor(vim.o.lines * 0.35))
-    end
-  end
-end, { desc = "Terminal toggle visibility" })
-
+-- ── Harpoon 7-9 (1-6 are in plugin spec keys) ────────────────────────────────
+map("n", "<leader>7", function() require("harpoon"):list():select(7) end, { desc = "Harpoon file 7" })
+map("n", "<leader>8", function() require("harpoon"):list():select(8) end, { desc = "Harpoon file 8" })
+map("n", "<leader>9", function() require("harpoon"):list():select(9) end, { desc = "Harpoon file 9" })
 
 -- ── Copilot Chat ─────────────────────────────────────────────────────────────
 map("n", "<leader>cc", "<cmd>CopilotChatToggle<cr>",  { desc = "Copilot chat toggle" })
 map("n", "<leader>ce", "<cmd>CopilotChatExplain<cr>", { desc = "Copilot explain" })
-map("n", "<leader>cx2", "<cmd>CopilotChatFix<cr>",     { desc = "Copilot fix" })
-map("v", "<leader>cc", "<cmd>CopilotChatToggle<cr>",  { desc = "Copilot chat selection" })
-map("v", "<leader>ce", "<cmd>CopilotChatExplain<cr>", { desc = "Copilot explain selection" })
 map("n", "<leader>ct", "<cmd>CopilotChatTests<cr>",   { desc = "Copilot generate tests" })
 map("n", "<leader>cr", "<cmd>CopilotChatReview<cr>",  { desc = "Copilot review" })
+map("v", "<leader>cc", "<cmd>CopilotChatToggle<cr>",  { desc = "Copilot chat selection" })
+map("v", "<leader>ce", "<cmd>CopilotChatExplain<cr>", { desc = "Copilot explain selection" })
 
--- ── Harpoon ──────────────────────────────────────────────────────────────────
-map("n", "<leader>ha", function() require("harpoon"):list():add() end,                                { desc = "Harpoon add file" })
-map("n", "<leader>hh", function() local h = require("harpoon") h.ui:toggle_quick_menu(h:list()) end, { desc = "Harpoon menu" })
-map("n", "<leader>1",  function() require("harpoon"):list():select(1) end,                            { desc = "Harpoon file 1" })
-map("n", "<leader>2",  function() require("harpoon"):list():select(2) end,                            { desc = "Harpoon file 2" })
-map("n", "<leader>3",  function() require("harpoon"):list():select(3) end,                            { desc = "Harpoon file 3" })
-map("n", "<leader>4",  function() require("harpoon"):list():select(4) end,                            { desc = "Harpoon file 4" })
-map("n", "<leader>5",  function() require("harpoon"):list():select(5) end,                            { desc = "Harpoon file 5" })
-map("n", "<leader>6",  function() require("harpoon"):list():select(6) end,                            { desc = "Harpoon file 6" })
-map("n", "<leader>7",  function() require("harpoon"):list():select(7) end,                            { desc = "Harpoon file 7" })
-map("n", "<leader>8",  function() require("harpoon"):list():select(8) end,                            { desc = "Harpoon file 8" })
-map("n", "<leader>9",  function() require("harpoon"):list():select(9) end,                            { desc = "Harpoon file 9" })
+-- ── Terminal toggle ───────────────────────────────────────────────────────────
+map("n", "<M-t>", function()
+  local term_wins = vim.tbl_filter(function(w)
+    return vim.bo[vim.api.nvim_win_get_buf(w)].buftype == "terminal"
+  end, vim.api.nvim_tabpage_list_wins(0))
+  if #term_wins > 0 then
+    for _, w in ipairs(term_wins) do pcall(vim.api.nvim_win_hide, w) end
+  else
+    local term_bufs = vim.tbl_filter(function(b)
+      return vim.api.nvim_buf_is_loaded(b) and vim.bo[b].buftype == "terminal"
+    end, vim.api.nvim_list_bufs())
+    if #term_bufs > 0 then
+      table.sort(term_bufs, function(a, b)
+        return vim.fn.getbufinfo(a)[1].lastused > vim.fn.getbufinfo(b)[1].lastused
+      end)
+      vim.cmd "bo sp"
+      vim.api.nvim_win_set_buf(0, term_bufs[1])
+      vim.api.nvim_win_set_height(0, math.floor(vim.o.lines * 0.35))
+    end
+  end
+end, { desc = "Terminal toggle" })
 
--- ── Search / Replace (Spectre) ───────────────────────────────────────────────
-map("n", "<leader>sr", function() require("spectre").toggle() end,                          { desc = "Search toggle spectre" })
-map("n", "<leader>sw", function() require("spectre").open_visual({ select_word = true }) end, { desc = "Search current word" })
-map("v", "<leader>sw", function() require("spectre").open_visual() end,                     { desc = "Search selection" })
-map("n", "<leader>sf", function() require("spectre").open_file_search({ select_word = true }) end, { desc = "Search in file" })
-
--- ── Git: Fugitive ────────────────────────────────────────────────────────────
-map("n", "<leader>gs", "<cmd>Git<cr>",               { desc = "Git status" })
-map("n", "<leader>gc", "<cmd>Git commit<cr>",        { desc = "Git commit" })
-map("n", "<leader>gP", "<cmd>Git push<cr>",          { desc = "Git push" })
-map("n", "<leader>gl", "<cmd>Git log --oneline<cr>", { desc = "Git log" })
-map("n", "<leader>gb", "<cmd>Git blame<cr>",         { desc = "Git blame" })
-
--- ── Git: Diffview ────────────────────────────────────────────────────────────
-map("n", "<leader>gd", "<cmd>DiffviewOpen<cr>",          { desc = "Git diff view" })
-map("n", "<leader>gD", "<cmd>DiffviewClose<cr>",         { desc = "Git diff close" })
-map("n", "<leader>gh", "<cmd>DiffviewFileHistory %<cr>", { desc = "Git file history" })
-map("n", "<leader>gH", "<cmd>DiffviewFileHistory<cr>",   { desc = "Git repo history" })
+-- ── Misc ─────────────────────────────────────────────────────────────────────
+map("n", "<leader>uT", "<cmd>TSBufToggle highlight<cr>", { desc = "Toggle treesitter highlight" })
