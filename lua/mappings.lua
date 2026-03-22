@@ -15,6 +15,8 @@ map("n", "<tab>",   function() safe_tab("next") end, { desc = "Buffer next" })
 map("n", "<S-tab>", function() safe_tab("prev") end, { desc = "Buffer prev" })
 
 -- ── General ──────────────────────────────────────────────────────────────────
+map("n", ";",    ":",         { desc = "Command mode" })
+map("i", "jk",  "<Esc>",     { desc = "Escape insert mode" })
 map("n", "<leader><leader>", "<cmd>D<cr>",  { desc = "Dotnet palette" })
 map("n", "<M-S-p>",          "<cmd>Dotnet<cr>", { desc = "Dotnet command palette" })
 map("n", "<leader>w", "<cmd>w<cr>",         { desc = "File save" })

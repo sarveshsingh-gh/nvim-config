@@ -1,5 +1,33 @@
 return {
 
+  -- ── LuaSnip: load custom snippets from luasnippets/ ──────────────────────
+  {
+    "L3MON4D3/LuaSnip",
+    config = function()
+      require("luasnip.loaders.from_lua").lazy_load({
+        paths = vim.fn.stdpath("config") .. "/luasnippets",
+      })
+    end,
+  },
+
+  -- ── Mason: auto-install csharpier ────────────────────────────────────────
+  {
+    "williamboman/mason.nvim",
+    opts = {
+      ensure_installed = { "csharpier" },
+    },
+  },
+
+  -- ── conform.nvim: csharpier formatter for .cs files ──────────────────────
+  {
+    "stevearc/conform.nvim",
+    opts = {
+      formatters_by_ft = {
+        cs = { "csharpier" },
+      },
+    },
+  },
+
   -- ── blink.cmp: faster completion (replaces nvim-cmp) ─────────────────────
   { import = "nvchad.blink.lazyspec" },
 
