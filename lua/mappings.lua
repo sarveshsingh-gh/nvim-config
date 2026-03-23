@@ -19,8 +19,17 @@ map("n", ";",    ":",         { desc = "Command mode" })
 map("i", "jk",  "<Esc>",     { desc = "Escape insert mode" })
 map("n", "<leader><leader>", "<cmd>D<cr>",  { desc = "Dotnet palette" })
 map("n", "<M-S-p>",          "<cmd>Dotnet<cr>", { desc = "Dotnet command palette" })
-map("n", "<leader>w", "<cmd>w<cr>",         { desc = "File save" })
-map("n", "<leader>q", "<cmd>q<cr>",         { desc = "File quit" })
+map("n", "<leader>w",  "<cmd>w<cr>",   { desc = "File save" })
+map("n", "<leader>W",  "<cmd>wa<cr>",  { desc = "File save all" })
+map("n", "<leader>q",  "<cmd>q<cr>",   { desc = "File quit" })
+map("n", "<leader>bo", function()
+  local cur = vim.api.nvim_get_current_buf()
+  for _, b in ipairs(vim.api.nvim_list_bufs()) do
+    if b ~= cur and vim.bo[b].buflisted then
+      vim.cmd("bd " .. b)
+    end
+  end
+end, { desc = "Buffer close others" })
 
 -- ── Comment toggle (VS Code style) ───────────────────────────────────────────
 map({ "n", "v" }, "<C-/>", "gcc", { desc = "Comment toggle", remap = true })
