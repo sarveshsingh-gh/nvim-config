@@ -155,6 +155,28 @@ return {
   -- ── blink.cmp: faster completion (replaces nvim-cmp) ─────────────────────
   { import = "nvchad.blink.lazyspec" },
 
+  -- ── telescope: parent/filename path display + show hidden/ignored files ──────
+  {
+    "nvim-telescope/telescope.nvim",
+    opts = function(_, opts)
+      opts.defaults = opts.defaults or {}
+      -- Show only "ParentDir/filename.ext" instead of full path
+      opts.defaults.path_display = function(_, path)
+        local tail   = vim.fs.basename(path)
+        local parent = vim.fs.basename(vim.fs.dirname(path))
+        if parent == nil or parent == "." or parent == "" then
+          return tail
+        end
+        return parent .. "/" .. tail
+      end
+      -- Always show hidden files (.gitignore, .env, etc.) and files ignored by git
+      opts.defaults.find_command = {
+        "rg", "--files", "--hidden", "--no-ignore", "--glob", "!**/.git/*",
+      }
+      return opts
+    end,
+  },
+
   -- ── telescope-ui-select: use telescope for vim.ui.select (code actions etc) ─
   {
     "nvim-telescope/telescope-ui-select.nvim",
