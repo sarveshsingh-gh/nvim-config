@@ -162,12 +162,15 @@ return {
       opts.defaults = opts.defaults or {}
       -- Show only "ParentDir/filename.ext" instead of full path
       opts.defaults.path_display = function(_, path)
-        local tail   = vim.fs.basename(path)
-        local parent = vim.fs.basename(vim.fs.dirname(path))
-        if parent == nil or parent == "." or parent == "" then
-          return tail
+        local tail        = vim.fs.basename(path)
+        local parent_full = vim.fs.basename(vim.fs.dirname(path))
+        local grandparent = vim.fs.basename(vim.fs.dirname(vim.fs.dirname(path)))
+        -- shorten dotted folder names: "Deloitte.UK.ComplexApps.EForms.Web.Tests" → "Tests"
+        local parent_short = parent_full:match("([^.]+)$") or parent_full
+        if grandparent == nil or grandparent == "." or grandparent == "" then
+          return parent_short .. "/" .. tail
         end
-        return parent .. "/" .. tail
+        return grandparent .. "/" .. parent_short .. "/" .. tail
       end
       -- Always show hidden files (.gitignore, .env, etc.) and files ignored by git
       opts.defaults.find_command = {
