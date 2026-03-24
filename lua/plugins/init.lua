@@ -163,13 +163,14 @@ return {
       -- Show only "ParentDir/filename.ext" instead of full path
       opts.defaults.path_display = function(_, path)
         -- strip the common company prefix anywhere in the path
-        local cleaned = path:gsub("Deloitte%.UK%.ComplexApps%.EForms%.", "")
-        local tail   = vim.fs.basename(cleaned)
-        local parent = vim.fs.basename(vim.fs.dirname(cleaned))
-        if parent == nil or parent == "." or parent == "" then
-          return tail
+        local cleaned     = path:gsub("Deloitte%.UK%.ComplexApps%.EForms%.", "")
+        local tail        = vim.fs.basename(cleaned)
+        local parent      = vim.fs.basename(vim.fs.dirname(cleaned))
+        local grandparent = vim.fs.basename(vim.fs.dirname(vim.fs.dirname(cleaned)))
+        if grandparent == nil or grandparent == "." or grandparent == "" then
+          return parent .. "/" .. tail
         end
-        return parent .. "/" .. tail
+        return grandparent .. "/" .. parent .. "/" .. tail
       end
       -- Always show hidden files (.gitignore, .env, etc.) and files ignored by git
       opts.defaults.find_command = {
