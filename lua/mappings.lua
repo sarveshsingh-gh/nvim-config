@@ -197,3 +197,6 @@ map("n", "cc", function() return smart_insert("cc") end, { expr = true, desc = "
 
 -- ── Misc ─────────────────────────────────────────────────────────────────────
 map("n", "<leader>uT", "<cmd>TSBufToggle highlight<cr>", { desc = "Toggle treesitter highlight" })
+map("n", "<leader>ci", function()
+  vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = 0 }), { bufnr = 0 })
+end, { desc = "Toggle inlay hints" })
