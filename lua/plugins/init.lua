@@ -1,5 +1,14 @@
 return {
 
+  -- ── undotree: visualise undo history ─────────────────────────────────────
+  {
+    "mbbill/undotree",
+    cmd = "UndotreeToggle",
+    keys = {
+      { "<leader>u", "<cmd>UndotreeToggle<cr>", desc = "Undotree toggle" },
+    },
+  },
+
   -- ── LuaSnip: load custom snippets from luasnippets/ ──────────────────────
   {
     "L3MON4D3/LuaSnip",
