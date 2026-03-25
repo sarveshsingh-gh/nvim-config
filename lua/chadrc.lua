@@ -23,7 +23,7 @@ M.ui = {
         for _, win in ipairs(vim.api.nvim_list_wins()) do
           local buf = vim.api.nvim_win_get_buf(win)
           local ft  = vim.bo[buf].filetype
-          if ft == "dotnet_explorer" or ft == "dotnet_test_explorer" or ft == "NvimTree" then
+          if ft == "dotnet_explorer" or ft == "NvimTree" then
             return string.rep(" ", vim.api.nvim_win_get_width(win) + 1)
           end
         end
