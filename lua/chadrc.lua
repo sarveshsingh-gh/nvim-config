@@ -24,7 +24,7 @@ M.ui = {
           local buf = vim.api.nvim_win_get_buf(win)
           local ft  = vim.bo[buf].filetype
           if ft == "dotnet_explorer" or ft == "dotnet_test_explorer" or ft == "NvimTree" then
-            return "%#NvimTreeNormal#" .. string.rep(" ", vim.api.nvim_win_get_width(win) + 1)
+            return string.rep(" ", vim.api.nvim_win_get_width(win) + 1)
           end
         end
         return ""
